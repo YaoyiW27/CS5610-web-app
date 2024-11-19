@@ -1,98 +1,117 @@
+// routes/auth.js
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
-// 注册端点
-router.post('/register', async (req, res) => {
-  const { email, password, firstName, lastName } = req.body;
+// Passport Google OAuth configuration
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: "http://localhost:3001/api/auth/google/callback",
+      passReqToCallback: true
+    },
+    async (req, accessToken, refreshToken, profile, cb) => {
+      try {
+        let user = await prisma.user.findUnique({
+          where: {
+            email: profile.emails[0].value
+          }
+        });
 
-  try {
-    // 检查用户是否已存在
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
-      return res.status(400).json({ error: 'User already exists' });
+        if (!user) {
+          // Create new user if doesn't exist
+          user = await prisma.user.create({
+            data: {
+              email: profile.emails[0].value,
+              displayName: profile.displayName,
+              firstName: profile.name.givenName,
+              lastName: profile.name.familyName,
+              password: '' // Empty password for Google OAuth users
+            }
+          });
+        }
+
+        return cb(null, user);
+      } catch (error) {
+        return cb(error);
+      }
     }
+  )
+);
 
-    // 哈希密码
-    const hashedPassword = await bcrypt.hash(password, 10);
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
 
-    // 创建新用户
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        firstName,
-        lastName,
-      },
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id }
     });
-
-    res.json({ message: 'User registered successfully' });
+    done(null, user);
   } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ error: 'Registration failed' });
+    done(error);
   }
 });
 
-// 登录端点
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+// Google OAuth routes
+router.get('/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
 
-  try {
-    // 查找用户
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+router.get('/google/callback',
+  passport.authenticate('google', { failureRedirect: 'http://localhost:3000/login' }),
+  (req, res) => {
+    try {
+      // Create JWT token
+      const token = jwt.sign(
+        { userId: req.user.id },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      // Set cookie
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
+
+      // Redirect to frontend
+      res.redirect('http://localhost:3000');
+    } catch (error) {
+      console.error('Auth callback error:', error);
+      res.redirect('http://localhost:3000/login?error=auth_failed');
     }
-
-    // 验证密码
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    // 创建 JWT
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-      expiresIn: '7d',
-    });
-
-    // 设置 Cookie
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 天
-    });
-
-    res.json({ message: 'Login successful' });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Login failed' });
   }
-});
+);
 
-// 登出端点
-router.post('/logout', (req, res) => {
-  res.clearCookie('token');
-  res.json({ message: 'Logout successful' });
-});
-
-// 检查身份验证状态
+// Check authentication status
 router.get('/check', (req, res) => {
   const token = req.cookies.token;
-
   if (!token) {
     return res.status(401).json({ authenticated: false });
   }
 
   try {
-    jwt.verify(token, process.env.JWT_SECRET);
-    res.json({ authenticated: true });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    res.json({ authenticated: true, userId: decoded.userId });
   } catch (error) {
     res.status(401).json({ authenticated: false });
   }
+});
+
+// Logout route
+router.post('/logout', (req, res) => {
+  res.clearCookie('token');
+  res.json({ message: 'Logged out successfully' });
 });
 
 module.exports = router;

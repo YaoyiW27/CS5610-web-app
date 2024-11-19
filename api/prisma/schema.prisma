@@ -1,9 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
+// This is your Prisma schema file
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,23 +9,72 @@ datasource db {
 }
 
 model User {
-  id        Int     @id @default(autoincrement())
-  email     String  @unique
-  password  String
-  firstName String?
-  lastName  String?
-  items     Item[]
+  id              Int       @id @default(autoincrement()) @map("user_id")
+  email           String    @unique @map("user_email") @db.VarChar(255)
+  password        String    @map("user_password") @db.VarChar(255)
+  displayName     String    @map("user_display_name") @db.VarChar(255)
+  firstName       String?   @map("user_first_name") @db.VarChar(255)
+  lastName        String?   @map("user_last_name") @db.VarChar(255)
+  createdAt       DateTime  @default(now()) @map("user_created_at")
+  updatedAt       DateTime  @updatedAt @map("user_updated_at")
+  favoriteBooks   UserFavoriteBook[]
+  bookRatings     UserRateBook[]
+  comments        Comment[]
+
+  @@map("users")
 }
 
-model Item {
-  id        Int     @id @default(autoincrement())
-  name      String
-  user      User    @relation(fields: [userId], references: [id])
-  userId    Int
-  createdAt DateTime @default(now())
+model Book {
+  id            Int       @id @default(autoincrement()) @map("book_id")
+  name          String    @map("book_name") @db.VarChar(255)
+  author        String    @map("book_author") @db.VarChar(255)
+  cover         Bytes?    @map("book_cover") @db.Blob
+  overview      String?   @map("book_overview") @db.Text
+  releasedDate  DateTime? @map("book_released_date") @db.Date
+  ratedAverage  Float?    @map("book_rated_average") @db.Double
+  createdAt     DateTime  @default(now()) @map("book_created_at")
+  updatedAt     DateTime  @updatedAt @map("book_updated_at")
+  userFavorites UserFavoriteBook[]
+  userRatings   UserRateBook[]
+  comments      Comment[]
+
+  @@map("books")
 }
 
-model OtherTable {
-  id   Int    @id @default(autoincrement())
-  data String
+model UserFavoriteBook {
+  id        Int       @id @default(autoincrement()) @map("like_id")
+  likedAt   DateTime  @default(now()) @map("liked_at")
+  unlikedAt DateTime? @map("unliked_at")
+  userId    Int       @map("user_id")
+  bookId    Int       @map("book_id")
+  user      User      @relation(fields: [userId], references: [id])
+  book      Book      @relation(fields: [bookId], references: [id])
+
+  @@map("users_favorite_books")
+}
+
+model UserRateBook {
+  id         Int       @id @default(autoincrement()) @map("rate_id")
+  score      Float     @map("rated_score") @db.Double
+  ratedAt    DateTime  @default(now()) @map("rated_at")
+  unratedAt  DateTime? @map("unrated_at")
+  userId     Int       @map("user_id")
+  bookId     Int       @map("book_id")
+  user       User      @relation(fields: [userId], references: [id])
+  book       Book      @relation(fields: [bookId], references: [id])
+
+  @@map("users_rate_books")
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement()) @map("comment_id")
+  text      String   @map("comment_text") @db.Text
+  createdAt DateTime @default(now()) @map("comment_created_at")
+  updatedAt DateTime @updatedAt @map("comment_updated_at")
+  userId    Int      @map("user_id")
+  bookId    Int      @map("book_id")
+  user      User     @relation(fields: [userId], references: [id])
+  book      Book     @relation(fields: [bookId], references: [id])
+
+  @@map("comments")
 }
