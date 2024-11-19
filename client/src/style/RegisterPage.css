@@ -1,0 +1,47 @@
+.register-page {
+    max-width: 400px;
+    margin: 50px auto;
+    text-align: center;
+  }
+  
+  .register-page h2 {
+    margin-bottom: 20px;
+  }
+  
+  .social-login-button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    color: white;
+    border-radius: 4px;
+  }
+  
+  .social-login-button.google {
+    background-color: #db4437;
+  }
+  
+  .social-login-button.google:hover {
+    background-color: #c33d2e;
+  }
+  
+  .register-page p {
+    margin-top: 10px;
+  }
+  
+  .register-page a {
+    color: #0066c0;
+    text-decoration: none;
+  }
+  
+  .register-page a:hover {
+    text-decoration: underline;
+  }
+  
+  .legal-text {
+    margin-top: 20px;
+    font-size: 12px;
+    color: #666;
+  }
