@@ -1,32 +1,30 @@
-import { ClerkProvider } from '@clerk/clerk-react';
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import SearchBooks from './pages/SearchBooks';
 import MyBooks from './pages/MyBooks';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import BookDetailPage from './pages/BookDetailPage';
 import './App.css';
-
-const clerkPubKey = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY;
-
-if (!clerkPubKey) {
-  throw new Error("Missing Publishable Key");
-}
 
 function App() {
   return (
-    <ClerkProvider publishableKey={clerkPubKey}>
-      <BrowserRouter>
-        <div className="App">
-          <Header />
-          <div className="main-container">
-            <Routes>
-              <Route path="/" element={<Navigate to="/search" />} />
-              <Route path="/search" element={<SearchBooks />} />
-              <Route path="/my-books" element={<MyBooks />} />
-            </Routes>
-          </div>
+    <BrowserRouter>
+      <div className="App">
+        <Header />
+        <div className="main-container">
+          <Routes>
+            <Route path="/" element={<Navigate to="/search" />} />
+            <Route path="/search" element={<SearchBooks />} />
+            <Route path="/my-books" element={<MyBooks />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/book/:id" element={<BookDetailPage />} />
+          </Routes>
         </div>
-      </BrowserRouter>
-    </ClerkProvider>
+      </div>
+    </BrowserRouter>
   );
 }
 
