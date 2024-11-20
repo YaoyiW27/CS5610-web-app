@@ -1,9 +1,63 @@
-// routes/bookComments.js
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const requireAuth = require('../middleware/requireAuth');
+
+// Get comments for a specific book
+router.get('/:id/comments', async (req, res) => {
+  const bookId = parseInt(req.params.id);
+
+  try {
+    const comments = await prisma.comment.findMany({
+      where: {
+        bookId: bookId
+      },
+      include: {
+        user: {
+          select: {
+            displayName: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    res.json(comments);
+  } catch (error) {
+    console.error('Error fetching comments:', error);
+    res.status(500).json({ error: 'Failed to fetch comments' });
+  }
+});
+
+// Get all comments by current user
+router.get('/user/comments', requireAuth, async (req, res) => {
+  try {
+    const comments = await prisma.comment.findMany({
+      where: {
+        userId: req.userId // Use the userId from requireAuth middleware
+      },
+      include: {
+        book: true,
+        user: {
+          select: {
+            displayName: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    res.json(comments);
+  } catch (error) {
+    console.error('Error fetching user comments:', error);
+    res.status(500).json({ error: 'Failed to fetch user comments' });
+  }
+});
 
 // Add a comment to a book
 router.post('/:id/comment', requireAuth, async (req, res) => {
@@ -31,34 +85,6 @@ router.post('/:id/comment', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Error adding comment:', error);
     res.status(500).json({ error: 'Failed to add comment' });
-  }
-});
-
-// Get comments for a book (new endpoint)
-router.get('/:id/comments', async (req, res) => {
-  const bookId = parseInt(req.params.id);
-
-  try {
-    const comments = await prisma.comment.findMany({
-      where: {
-        bookId
-      },
-      include: {
-        user: {
-          select: {
-            displayName: true
-          }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    });
-
-    res.json(comments);
-  } catch (error) {
-    console.error('Error fetching comments:', error);
-    res.status(500).json({ error: 'Failed to fetch comments' });
   }
 });
 
