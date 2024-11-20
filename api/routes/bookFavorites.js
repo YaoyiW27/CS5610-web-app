@@ -7,9 +7,14 @@ const requireAuth = require('../middleware/requireAuth');
 
 // Add or remove book from favorites
 router.post('/:id/favorite', requireAuth, async (req, res) => {
-  const bookId = parseInt(req.params.id);
+  const googleBooksId = req.params.id;
   const userId = req.userId;
-
+  const book = await prisma.book.findUnique({
+    where: {
+      googleBooksId
+    }
+  });
+  const bookId = book.id;
   try {
     const existingFavorite = await prisma.userFavoriteBook.findFirst({
       where: {
@@ -18,7 +23,6 @@ router.post('/:id/favorite', requireAuth, async (req, res) => {
         unlikedAt: null
       }
     });
-
     if (existingFavorite) {
       // Remove from favorites
       await prisma.userFavoriteBook.update({
@@ -28,6 +32,12 @@ router.post('/:id/favorite', requireAuth, async (req, res) => {
       res.json({ message: 'Book removed from favorites' });
     } else {
       // Add to favorites
+      console.log({
+        data: {
+          userId,
+          bookId
+        }
+      })
       await prisma.userFavoriteBook.create({
         data: {
           userId,

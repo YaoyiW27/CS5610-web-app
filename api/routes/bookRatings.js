@@ -7,10 +7,15 @@ const requireAuth = require('../middleware/requireAuth');
 
 // Rate a book
 router.post('/:id/rate', requireAuth, async (req, res) => {
-  const bookId = parseInt(req.params.id);
+  const googleBooksId = req.params.id;
   const userId = req.userId;
   const { score } = req.body;
-
+  const book = await prisma.book.findUnique({
+    where: {
+      googleBooksId
+    }
+  });
+  const bookId = book.id;
   try {
     const rating = await prisma.userRateBook.create({
       data: {
@@ -89,9 +94,16 @@ router.get('/user/ratings', requireAuth, async (req, res) => {
 
 // Update a rating
 router.put('/:id/rate', requireAuth, async (req, res) => {
-  const bookId = parseInt(req.params.id);
+  const googleBooksId = req.params.id;
   const userId = req.userId;
   const { score } = req.body;
+  const book = await prisma.book.findUnique({
+    where: {
+      googleBooksId
+    }
+  });
+  const bookId = book.id;
+  
 
   try {
     const existingRating = await prisma.userRateBook.findFirst({
