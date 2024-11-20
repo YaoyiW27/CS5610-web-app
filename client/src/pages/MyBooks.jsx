@@ -7,117 +7,52 @@ const MyBooks = () => {
   const [favoriteBooks, setFavoriteBooks] = useState([]);
   const [commentedBooks, setCommentedBooks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // 检查用户是否已登录
-    const checkAuth = async () => {
-      try {
-        const response = await fetch('http://localhost:3001/api/auth/check', {
-          method: 'GET',
-          credentials: 'include',
-        });
-
-        if (response.ok) {
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-        setIsAuthenticated(false);
-      } finally {
-        setIsAuthChecked(true);
-      }
-    };
-
-    checkAuth();
+    fetchUserBooks();
   }, []);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      // 用户已登录，获取书籍数据
-      fetchUserBooks();
-    } else {
-      setLoading(false);
-    }
-  }, [isAuthenticated]);
 
   const fetchUserBooks = async () => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API calls
-      // 模拟API响应
-      const favoritesResponse = [
-        {
-          id: '1',
-          volumeInfo: {
-            title: 'The Great Gatsby',
-            authors: ['F. Scott Fitzgerald'],
-            publishedDate: '1925',
-            imageLinks: {
-              thumbnail: '/placeholder-book.png',
-            },
-          },
-        },
-      ];
+      // Fetch favorite books
+      const favResponse = await fetch('http://localhost:3001/api/books/user/favorites', {
+        credentials: 'include'
+      });
+      if (!favResponse.ok) throw new Error('Failed to fetch favorites');
+      const favorites = await favResponse.json();
+      setFavoriteBooks(favorites);
 
-      const commentedResponse = [
-        {
-          id: '2',
-          volumeInfo: {
-            title: 'To Kill a Mockingbird',
-            authors: ['Harper Lee'],
-            publishedDate: '1960',
-            imageLinks: {
-              thumbnail: '/placeholder-book.png',
-            },
-          },
-          userComment: 'A masterpiece of American literature',
-        },
-      ];
+      // Fetch books with user's comments
+      const commentResponse = await fetch('http://localhost:3001/api/books/user/comments', {
+        credentials: 'include'
+      });
+      if (!commentResponse.ok) throw new Error('Failed to fetch commented books');
+      const commented = await commentResponse.json();
+      setCommentedBooks(commented);
 
-      setFavoriteBooks(favoritesResponse);
-      setCommentedBooks(commentedResponse);
     } catch (error) {
       console.error('Error fetching user books:', error);
+      setError(error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  if (!isAuthChecked) {
-    // 等待身份验证检查完成
-    return (
-      <div className="loading">
-        <div className="loading-spinner"></div>
-        <p>Checking authentication...</p>
-      </div>
-    );
+  if (loading) {
+    return <div className="loading">Loading your books...</div>;
   }
 
-  if (!isAuthenticated) {
-    // 用户未登录，显示提示信息
-    return (
-      <div className="main-container">
-        <div className="content-area">
-          <h2>Please log in to view your books.</h2>
-        </div>
-      </div>
-    );
+  if (error) {
+    return <div className="error">Error: {error}</div>;
   }
 
-  // 用户已登录，显示书籍列表
   return (
     <div className="main-container">
       <div className="content-area">
-        <div className="sticky-search">
-          <div className="search-container">
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>My Books</h1>
-          </div>
-        </div>
+        <h1>My Books</h1>
 
         <div className="my-books-tabs">
           <div className="tabs-header">
@@ -125,37 +60,36 @@ const MyBooks = () => {
               className={`tab-button ${activeTab === 'favorites' ? 'active' : ''}`}
               onClick={() => setActiveTab('favorites')}
             >
-              <i className="fas fa-star"></i>
-              Favorite Books
+              Favorite Books ({favoriteBooks.length})
             </button>
             <button
               className={`tab-button ${activeTab === 'commented' ? 'active' : ''}`}
               onClick={() => setActiveTab('commented')}
             >
-              <i className="fas fa-comment"></i>
-              Commented Books
+              Commented Books ({commentedBooks.length})
             </button>
           </div>
 
-          {loading ? (
-            <div className="loading">
-              <div className="loading-spinner"></div>
-              <p>Loading your books...</p>
-            </div>
-          ) : (
-            <div className="tabs-content">
-              {activeTab === 'favorites' && (
-                <div className="tab-pane">
+          <div className="tabs-content">
+            {activeTab === 'favorites' && (
+              <div className="tab-pane">
+                {favoriteBooks.length === 0 ? (
+                  <p>No favorite books yet.</p>
+                ) : (
                   <BookList books={favoriteBooks} />
-                </div>
-              )}
-              {activeTab === 'commented' && (
-                <div className="tab-pane">
+                )}
+              </div>
+            )}
+            {activeTab === 'commented' && (
+              <div className="tab-pane">
+                {commentedBooks.length === 0 ? (
+                  <p>No commented books yet.</p>
+                ) : (
                   <BookList books={commentedBooks} />
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
