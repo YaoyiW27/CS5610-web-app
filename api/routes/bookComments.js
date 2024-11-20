@@ -61,24 +61,33 @@ router.get('/user/comments', requireAuth, async (req, res) => {
 
 // Add a comment to a book
 router.post('/:id/comment', requireAuth, async (req, res) => {
-  const bookId = parseInt(req.params.id);
+  const googleBooksId = req.params.id;
   const userId = req.userId;
   const { text } = req.body;
+
+  console.log('userId =>>', userId);
+  console.log('bookId =>>', googleBooksId);
+
+  const book = await prisma.book.findUnique({
+    where: {
+      googleBooksId
+    }
+  });
 
   try {
     const comment = await prisma.comment.create({
       data: {
         text,
         userId,
-        bookId
+        bookId: book.id,
       },
-      include: {
-        user: {
-          select: {
-            displayName: true
-          }
-        }
-      }
+      // include: {
+      //   user: {
+      //     select: {
+      //       displayName: true
+      //     }
+      //   }
+      // }
     });
 
     res.json(comment);
