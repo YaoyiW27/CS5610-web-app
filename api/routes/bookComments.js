@@ -6,7 +6,12 @@ const requireAuth = require('../middleware/requireAuth');
 
 // Get comments for a specific book
 router.get('/:id/comments', async (req, res) => {
-  const bookId = parseInt(req.params.id);
+  const book = await prisma.book.findUnique({
+    where: {
+      googleBooksId
+    }
+  });
+  const bookId = book.id;
 
   try {
     const comments = await prisma.comment.findMany({
