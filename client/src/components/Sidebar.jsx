@@ -2,13 +2,12 @@ import React, { useState, useEffect } from 'react';
 
 const Sidebar = ({ onGenreSelect, selectedGenre }) => {
     const [activeGenre, setActiveGenre] = useState('All genres');
-
+  
     useEffect(() => {
-        // Set default genre when component mounts
-        if (!selectedGenre) {
-            onGenreSelect('All genres');
-        }
-    }, []);
+      if (!selectedGenre) {
+        onGenreSelect('All genres');
+      }
+    }, [selectedGenre, onGenreSelect]);
 
     const genres = [
         'All genres',
