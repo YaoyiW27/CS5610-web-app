@@ -47,7 +47,6 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const googleBooksId = req.params.id;
-    console.log('Fetching book details for ID:', googleBooksId);
 
     let bookInDb = await prisma.book.findFirst({
       where: {
@@ -246,7 +245,7 @@ router.get('/user/comments', requireAuth, async (req, res) => {
           }
           const googleData = await googleResponse.json();
           return {
-            id: comment.book.googleBooksId,
+            googleBooksId: comment.book.googleBooksId,
             volumeInfo: {
               title: googleData.volumeInfo.title,
               authors: googleData.volumeInfo.authors,

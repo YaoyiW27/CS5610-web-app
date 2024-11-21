@@ -21,16 +21,6 @@ const BookCard = ({ book }) => {
                '/placeholder-book.png';
     };
 
-    // Add debugging logs
-    console.log('Image URLs for book:', title, {
-        thumbnail: imageLinks?.thumbnail,
-        smallThumbnail: imageLinks?.smallThumbnail,
-        finalUrl: getImageUrl()
-    });
-
-    // Add book data debugging
-    console.log('Full book data:', book);
-
     return (
         <>
             <div className="card-container" onClick={() => setIsModalOpen(true)}>

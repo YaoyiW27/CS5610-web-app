@@ -23,86 +23,14 @@ const MyBooks = () => {
       });
       if (!favResponse.ok) throw new Error('Failed to fetch favorites');
       const favorites = await favResponse.json();
-      
-      // We need to fetch Google Books data for each book to get the cover image
-      const transformedFavorites = await Promise.all(favorites.map(async (book) => {
-        try {
-          const googleResponse = await fetch(`https://www.googleapis.com/books/v1/volumes/${book.googleBooksId}`);
-          const googleData = await googleResponse.json();
-          
-          return {
-            id: book.googleBooksId,
-            volumeInfo: {
-              title: book.name,
-              authors: [book.author],
-              description: book.overview,
-              publishedDate: book.releasedDate,
-              imageLinks: googleData.volumeInfo?.imageLinks || {
-                thumbnail: '/placeholder-book.png'
-              }
-            }
-          };
-        } catch (error) {
-          console.error(`Failed to fetch Google Books data for ${book.googleBooksId}:`, error);
-          return {
-            id: book.googleBooksId,
-            volumeInfo: {
-              title: book.name,
-              authors: [book.author],
-              description: book.overview,
-              publishedDate: book.releasedDate,
-              imageLinks: {
-                thumbnail: '/placeholder-book.png'
-              }
-            }
-          };
-        }
-      }));
-      
-      setFavoriteBooks(transformedFavorites);
+      setFavoriteBooks(favorites);
 
       // Fetch books with user's comments
       const commentResponse = await fetch('http://localhost:3001/api/books/user/comments', {
         credentials: 'include'
       });
-      if (!commentResponse.ok) throw new Error('Failed to fetch commented books');
-      const commented = await commentResponse.json();
-      
-      const transformedCommented = await Promise.all(commented.map(async (book) => {
-        try {
-          const googleResponse = await fetch(`https://www.googleapis.com/books/v1/volumes/${book.googleBooksId}`);
-          const googleData = await googleResponse.json();
-          
-          return {
-            id: book.googleBooksId,
-            volumeInfo: {
-              title: book.name,
-              authors: [book.author],
-              description: book.overview,
-              publishedDate: book.releasedDate,
-              imageLinks: googleData.volumeInfo?.imageLinks || {
-                thumbnail: '/placeholder-book.png'
-              }
-            }
-          };
-        } catch (error) {
-          console.error(`Failed to fetch Google Books data for ${book.googleBooksId}:`, error);
-          return {
-            id: book.googleBooksId,
-            volumeInfo: {
-              title: book.name,
-              authors: [book.author],
-              description: book.overview,
-              publishedDate: book.releasedDate,
-              imageLinks: {
-                thumbnail: '/placeholder-book.png'
-              }
-            }
-          };
-        }
-      }));
-      
-      setCommentedBooks(transformedCommented);
+      const comments = await commentResponse.json();
+      setCommentedBooks(comments);
 
     } catch (error) {
       console.error('Error fetching user books:', error);

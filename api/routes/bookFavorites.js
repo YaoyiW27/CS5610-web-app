@@ -52,24 +52,4 @@ router.post('/:id/favorite', requireAuth, async (req, res) => {
   }
 });
 
-// Get user's favorite books
-router.get('/user/favorites', requireAuth, async (req, res) => {
-  try {
-    const favorites = await prisma.userFavoriteBook.findMany({
-      where: {
-        userId: req.userId,
-        unlikedAt: null
-      },
-      include: {
-        book: true
-      }
-    });
-
-    res.json(favorites.map(fav => fav.book));
-  } catch (error) {
-    console.error('Error fetching favorites:', error);
-    res.status(500).json({ error: 'Failed to fetch favorites' });
-  }
-});
-
 module.exports = router;
