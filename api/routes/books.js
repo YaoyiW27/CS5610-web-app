@@ -4,7 +4,6 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const requireAuth = require('../middleware/requireAuth');
 
-
 // Get all books with their average ratings
 router.get('/', async (req, res) => {
   try {
@@ -59,6 +58,7 @@ router.get('/:id', async (req, res) => {
           include: {
             user: {
               select: {
+                id: true,
                 displayName: true
               }
             }
@@ -80,6 +80,7 @@ router.get('/:id', async (req, res) => {
           include: {
             user: {
               select: {
+                id: true,
                 displayName: true
               }
             }
@@ -186,15 +187,33 @@ router.get('/user/favorites', requireAuth, async (req, res) => {
       }
     });
 
-    const books = favorites.map(fav => fav.book);
-    res.json(books);
+    // Get Google Books data for each book
+    const booksWithDetails = await Promise.all(
+      favorites.map(async (fav) => {
+        try {
+          const googleResponse = await fetch(
+            `https://www.googleapis.com/books/v1/volumes/${fav.book.googleBooksId}`
+          );
+          const googleData = await googleResponse.json();
+          return {
+            ...fav.book,
+            volumeInfo: googleData.volumeInfo
+          };
+        } catch (error) {
+          console.error(`Failed to fetch Google Books data: ${error}`);
+          return fav.book;
+        }
+      })
+    );
+
+    res.json(booksWithDetails);
   } catch (error) {
     console.error('Error fetching favorites:', error);
     res.status(500).json({ error: 'Failed to fetch favorites' });
   }
 });
 
-// Get user's commented books
+// Get user's commented books with ratings
 router.get('/user/comments', requireAuth, async (req, res) => {
   try {
     const comments = await prisma.comment.findMany({
@@ -202,7 +221,12 @@ router.get('/user/comments', requireAuth, async (req, res) => {
         userId: req.userId
       },
       include: {
-        book: true
+        book: true,
+        user: {
+          select: {
+            displayName: true
+          }
+        }
       },
       distinct: ['bookId'],
       orderBy: {
@@ -210,8 +234,56 @@ router.get('/user/comments', requireAuth, async (req, res) => {
       }
     });
 
-    const books = comments.map(comment => comment.book);
-    res.json(books);
+    // Get Google Books data for each commented book
+    const booksWithDetails = await Promise.all(
+      comments.map(async (comment) => {
+        try {
+          const googleResponse = await fetch(
+            `https://www.googleapis.com/books/v1/volumes/${comment.book.googleBooksId}`
+          );
+          if (!googleResponse.ok) {
+            throw new Error('Failed to fetch Google Books data');
+          }
+          const googleData = await googleResponse.json();
+          return {
+            id: comment.book.googleBooksId,
+            volumeInfo: {
+              title: googleData.volumeInfo.title,
+              authors: googleData.volumeInfo.authors,
+              description: googleData.volumeInfo.description,
+              publishedDate: googleData.volumeInfo.publishedDate,
+              imageLinks: googleData.volumeInfo.imageLinks || {},
+              averageRating: googleData.volumeInfo.averageRating,
+              ratingsCount: googleData.volumeInfo.ratingsCount
+            },
+            dbData: {
+              id: comment.book.id,
+              userComment: comment.text,
+              createdAt: comment.createdAt
+            }
+          };
+        } catch (error) {
+          console.error(`Failed to fetch Google Books data for ${comment.book.googleBooksId}:`, error);
+          // Return basic book data if Google Books API fails
+          return {
+            id: comment.book.googleBooksId,
+            volumeInfo: {
+              title: comment.book.name,
+              authors: [comment.book.author],
+              publishedDate: comment.book.releasedDate,
+              imageLinks: {}
+            },
+            dbData: {
+              id: comment.book.id,
+              userComment: comment.text,
+              createdAt: comment.createdAt
+            }
+          };
+        }
+      })
+    );
+
+    res.json(booksWithDetails);
   } catch (error) {
     console.error('Error fetching commented books:', error);
     res.status(500).json({ error: 'Failed to fetch commented books' });

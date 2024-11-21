@@ -168,14 +168,18 @@ class SearchBooks extends Component {
     }
 
     cleanData = (data) => {
-        const cleanedData = data.body.items.map((book) => {
-            if(book.volumeInfo.hasOwnProperty('publishedDate') === false) {
-                book.volumeInfo['publishedDate'] = '0000';
-            }
-            else if(book.volumeInfo.hasOwnProperty('imageLinks') === false) {
-                book.volumeInfo['imageLinks'] = { thumbnail: '/placeholder-book.png' };
-            }
-            return book;
+        const cleanedData = data.body.items.map((book, index) => {
+          if(book.volumeInfo.hasOwnProperty('publishedDate') === false) {
+            book.volumeInfo['publishedDate'] = '0000';
+          }
+          if(book.volumeInfo.hasOwnProperty('imageLinks') === false) {
+            book.volumeInfo['imageLinks'] = { thumbnail: '/placeholder-book.png' };
+          }
+          // Add a unique identifier if none exists
+          if (!book.id) {
+            book.id = `book-${index}`;
+          }
+          return book;
         });
         return cleanedData;
     }

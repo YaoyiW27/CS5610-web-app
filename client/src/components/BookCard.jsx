@@ -3,6 +3,7 @@ import BookModal from './BookModal';
 
 const BookCard = ({ book }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [imageError, setImageError] = useState(false);
 
     // Safely access volumeInfo with default values
     const {
@@ -12,14 +13,33 @@ const BookCard = ({ book }) => {
         publishedDate = 'No date available'
     } = book?.volumeInfo || {};
 
+    // Get the best available image URL
+    const getImageUrl = () => {
+        if (imageError) return '/placeholder-book.png';
+        return imageLinks?.thumbnail || 
+               imageLinks?.smallThumbnail || 
+               '/placeholder-book.png';
+    };
+
+    // Add debugging logs
+    console.log('Image URLs for book:', title, {
+        thumbnail: imageLinks?.thumbnail,
+        smallThumbnail: imageLinks?.smallThumbnail,
+        finalUrl: getImageUrl()
+    });
+
+    // Add book data debugging
+    console.log('Full book data:', book);
+
     return (
         <>
             <div className="card-container" onClick={() => setIsModalOpen(true)}>
                 <img 
-                    src={imageLinks?.thumbnail || '/placeholder-book.png'}
+                    src={getImageUrl()}
                     alt={title}
                     onError={(e) => {
-                        e.target.onerror = null;
+                        console.error(`Failed to load image for book: ${title}`);
+                        setImageError(true);
                         e.target.src = '/placeholder-book.png';
                     }}
                 />
