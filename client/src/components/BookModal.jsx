@@ -10,6 +10,7 @@ const BookModal = ({ book, onClose, isOpen }) => {
   // 安全地解构书籍信息，提供默认值
   const {
     id: bookId, // 获取书籍的 ID，用于导航
+    googleBooksId,
     volumeInfo: {
       title = 'No title available',
       authors = ['Unknown author'],
@@ -20,6 +21,8 @@ const BookModal = ({ book, onClose, isOpen }) => {
     } = {},
   } = book || {};
 
+
+  console.log('book:', book);
   // 使用 DOMPurify 清理描述内容
   const sanitizedDescription = DOMPurify.sanitize(description);
 
@@ -55,7 +58,7 @@ const BookModal = ({ book, onClose, isOpen }) => {
   // 处理书名点击事件，导航到书籍详情页面
   const handleTitleClick = () => {
     onClose(); // 关闭模态框
-    navigate(`/book/${bookId}`); // 使用书籍的 ID 导航到详情页面
+    navigate(`/book/${googleBooksId}`); // 使用书籍的 ID 导航到详情页面
   };
 
   return (

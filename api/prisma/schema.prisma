@@ -29,8 +29,8 @@ model Book {
   googleBooksId String?   @unique @map("google_books_id") // Add this line
   name          String    @map("book_name") @db.VarChar(255)
   author        String    @map("book_author") @db.VarChar(255)
-  cover         Bytes?    @map("book_cover") @db.Blob
-  overview      String?   @map("book_overview") @db.Text
+  cover         String?    @map("book_cover") @db.Text
+  description   String?   @map("book_overview") @db.Text
   releasedDate  DateTime? @map("book_released_date") @db.Date
   ratedAverage  Float?    @map("book_rated_average") @db.Double
   createdAt     DateTime  @default(now()) @map("book_created_at")
