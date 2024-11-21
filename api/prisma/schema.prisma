@@ -1,4 +1,3 @@
-// This is your Prisma schema file
 generator client {
   provider = "prisma-client-js"
 }
@@ -19,7 +18,7 @@ model User {
   updatedAt       DateTime  @updatedAt @map("user_updated_at")
   favoriteBooks   UserFavoriteBook[]
   bookRatings     UserRateBook[]
-  comments        Comment[]
+  reviews         Review[]
 
   @@map("users")
 }
@@ -29,7 +28,7 @@ model Book {
   googleBooksId String?   @unique @map("google_books_id") // Add this line
   name          String    @map("book_name") @db.VarChar(255)
   author        String    @map("book_author") @db.VarChar(255)
-  cover         String?    @map("book_cover") @db.Text
+  cover         String?   @map("book_cover") @db.Text
   description   String?   @map("book_overview") @db.Text
   releasedDate  DateTime? @map("book_released_date") @db.Date
   ratedAverage  Float?    @map("book_rated_average") @db.Double
@@ -37,7 +36,7 @@ model Book {
   updatedAt     DateTime  @updatedAt @map("book_updated_at")
   userFavorites UserFavoriteBook[]
   userRatings   UserRateBook[]
-  comments      Comment[]
+  reviews       Review[]
   @@map("books")
 }
 
@@ -66,15 +65,15 @@ model UserRateBook {
   @@map("users_rate_books")
 }
 
-model Comment {
-  id        Int      @id @default(autoincrement()) @map("comment_id")
-  text      String   @map("comment_text") @db.Text
-  createdAt DateTime @default(now()) @map("comment_created_at")
-  updatedAt DateTime @updatedAt @map("comment_updated_at")
+model Review {
+  id        Int      @id @default(autoincrement()) @map("review_id")
+  text      String   @map("review_text") @db.Text
+  createdAt DateTime @default(now()) @map("review_created_at")
+  updatedAt DateTime @updatedAt @map("review_updated_at")
   userId    Int      @map("user_id")
   bookId    Int      @map("book_id")
   user      User     @relation(fields: [userId], references: [id])
   book      Book     @relation(fields: [bookId], references: [id])
 
-  @@map("comments")
+  @@map("reviews")
 }
