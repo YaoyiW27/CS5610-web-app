@@ -4,6 +4,15 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const requireAuth = require('../middleware/requireAuth');
 
+// Verify API key is available
+const GOOGLE_BOOKS_API_KEY = process.env.GOOGLE_BOOKS_API_KEY;
+if (!GOOGLE_BOOKS_API_KEY) {
+  console.error('Google Books API key is not configured');
+}
+
+// Verify API key at startup
+console.log('Google Books API Key status:', GOOGLE_BOOKS_API_KEY ? 'Present' : 'Missing');
+
 // Get all books with their average ratings
 router.get('/', async (req, res) => {
   try {
@@ -289,23 +298,52 @@ router.get('/user/comments', requireAuth, async (req, res) => {
   }
 });
 
-// Search books (using Google Books API)
+// Search books endpoint (using Google Books API)
 router.get('/search/:query', async (req, res) => {
+  if (!GOOGLE_BOOKS_API_KEY) {
+    return res.status(500).json({ 
+      error: 'Server configuration error: Google Books API key is not set'
+    });
+  }
+
   try {
-    const { query } = req.params;
-    const response = await fetch(
-      `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}`
-    );
+    const rawQuery = req.params.query;
+    console.log('Processing search query:', rawQuery);
+
+    const searchUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(rawQuery)}&orderBy=newest&key=${GOOGLE_BOOKS_API_KEY}&maxResults=40`;
+    
+    console.log('Making request to Google Books API...');
+    const response = await fetch(searchUrl);
     
     if (!response.ok) {
-      throw new Error('Google Books API search request failed');
+      const errorText = await response.text();
+      console.error('Google Books API Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText
+      });
+      throw new Error(`Google Books API request failed: ${response.statusText}`);
     }
     
     const data = await response.json();
-    res.json(data);
+    console.log('Received response with', data.items?.length || 0, 'items');
+
+    const processedData = {
+      ...data,
+      items: data.items?.filter(book => 
+        book.volumeInfo?.imageLinks?.thumbnail && 
+        book.volumeInfo?.authors?.length > 0
+      ) || []
+    };
+    
+    console.log('Processed data contains', processedData.items.length, 'filtered items');
+    res.json(processedData);
   } catch (error) {
-    console.error('Error searching books:', error);
-    res.status(500).json({ error: 'Failed to search books' });
+    console.error('Search error:', error);
+    res.status(500).json({ 
+      error: 'Failed to search books',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
