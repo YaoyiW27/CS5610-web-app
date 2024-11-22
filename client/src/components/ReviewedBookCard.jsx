@@ -2,29 +2,39 @@ import React, { useState } from 'react';
 import BookModal from './BookModal';
 import '../style/MyBooks.css';
 
-const BookCard = ({ book }) => {
+const ReviewedBookCard = ({ book }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [imageError, setImageError] = useState(false);
 
-    // 使用Google Books默认图片作为占位图
     const DEFAULT_IMAGE = 'https://books.google.com/books/content?id=no_cover&printsec=frontcover&img=1&zoom=1&source=gbs_api';
 
     const getImageUrl = () => {
-        if (imageError) return DEFAULT_IMAGE;
+        if (imageError) {
+            console.log("Using default image due to error");
+            return DEFAULT_IMAGE;
+        }
 
-        // check url in the following order:
         const url = book?.volumeInfo?.imageLinks?.thumbnail || 
                    book?.volumeInfo?.imageLinks?.smallThumbnail || 
                    book?.cover || 
                    DEFAULT_IMAGE;
-
-        // makre sure the url is secure
+                   
+        console.log("Selected image URL:", url);
         return url.replace('http://', 'https://');
+    };
+
+    const handleCardClick = () => {
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
     };
 
     return (
         <>
-            <div className="card-container" onClick={() => setIsModalOpen(true)}>
+            <div className="card-container" onClick={handleCardClick}>
+                {/* Cover */}
                 <img 
                     src={getImageUrl()}
                     alt={book?.volumeInfo?.title || 'Book cover'}
@@ -35,6 +45,8 @@ const BookCard = ({ book }) => {
                     }}
                     className="book-cover"
                 />
+
+                {/* Description */}
                 <div className="desc">
                     <h2>{book?.volumeInfo?.title || 'Unknown Title'}</h2>
                     <h3>
@@ -46,16 +58,28 @@ const BookCard = ({ book }) => {
                             : 'Unknown Year'}
                     </p>
                 </div>
+
+                {/* Your Review */}
+                <div className="review-content">
+                    <h4>Your Review:</h4>
+                    <p>{book.review.text}</p>
+                    <span className="review-date">
+                        {new Date(book.review.createdAt).toLocaleDateString()}
+                    </span>
+                </div>
             </div>
+
+            {/* Modal */}
             {isModalOpen && (
                 <BookModal 
                     book={book}
+                    review={book.review}
                     isOpen={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
+                    onClose={handleCloseModal}
                 />
             )}
         </>
     );
 };
 
-export default BookCard;
+export default ReviewedBookCard;

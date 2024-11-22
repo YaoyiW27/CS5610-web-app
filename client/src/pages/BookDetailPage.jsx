@@ -43,7 +43,7 @@ function BookDetailPage() {
 
   const handleFavoriteClick = async () => {
     if (!isAuthenticated) {
-      alert('您必须登录才能执行此操作。');
+      alert('You must be logged in to add/remove favorites.');  
       return;
     }
     try {
@@ -93,25 +93,25 @@ function BookDetailPage() {
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     if (!isAuthenticated || !userReview.trim()) {
-      alert('您必须登录并输入评论才能提交。');
+      alert('You must be logged in and enter a review to submit.');
       return;
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/books/${id}/review`, { // 修改为 /review
+      const response = await fetch(`${API_BASE_URL}/books/${id}/review`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: userReview }) // 保留 text 字段作为评论内容
+        body: JSON.stringify({ text: userReview }) 
       });
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to submit review');
       }
       const data = await response.json();
-      console.log('Review response:', data); // 更新调试日志
-      setUserReview(''); // 清空评论输入框
-      fetchBookDetails(); // 刷新书籍详情
+
+      setUserReview(''); 
+      fetchBookDetails(); 
     } catch (err) {
       console.error(err);
       alert(err.message);

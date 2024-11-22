@@ -25,10 +25,10 @@ model User {
 
 model Book {
   id            Int       @id @default(autoincrement()) @map("book_id")
-  googleBooksId String?   @unique @map("google_books_id") // Add this line
+  googleBooksId String?   @unique @map("google_books_id")
   name          String    @map("book_name") @db.VarChar(255)
   author        String    @map("book_author") @db.VarChar(255)
-  cover         String?   @map("book_cover") @db.Text
+  cover         String?   @map("book_cover") @db.Text 
   description   String?   @map("book_overview") @db.Text
   releasedDate  DateTime? @map("book_released_date") @db.Date
   ratedAverage  Float?    @map("book_rated_average") @db.Double
@@ -37,6 +37,7 @@ model Book {
   userFavorites UserFavoriteBook[]
   userRatings   UserRateBook[]
   reviews       Review[]
+
   @@map("books")
 }
 
