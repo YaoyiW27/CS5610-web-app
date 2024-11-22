@@ -8,6 +8,7 @@ import Register from './pages/Register';
 import BookDetailPage from './pages/BookDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
+import './style/Layout.css';
 import { AuthProvider } from "./security/AuthContext";
 
 function App() {

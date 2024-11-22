@@ -3,13 +3,13 @@ import SearchArea from '../components/SearchArea';
 import BookList from '../components/BookList';
 import Sidebar from '../components/Sidebar';
 
-const API_URL = 'http://localhost:3001';
-
-function SearchBooks() {
+const SearchBooks = () => {
   const [books, setBooks] = useState([]);
   const [searchField, setSearchField] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('All genres');
   const [isLoading, setIsLoading] = useState(false);
+
+  const API_URL = 'http://localhost:3001';
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -65,21 +65,27 @@ function SearchBooks() {
 
   return (
     <div className="main-container">
-      <Sidebar onGenreSelect={handleGenreSelect} selectedGenre={selectedGenre} />
-      <div className="content-area">
-        <SearchArea 
-          searchBook={handleSearch}
-          handleSearch={handleSearchInput}
-          searchField={searchField}
-        />
-        {isLoading ? (
-          <div className="loading">Searching for books...</div>
-        ) : (
-          <BookList books={books} />
-        )}
+      <div className="search-layout">
+        <aside className="genre-sidebar">
+          <Sidebar onGenreSelect={handleGenreSelect} selectedGenre={selectedGenre} />
+        </aside>
+        <main className="search-content">
+          <SearchArea 
+            searchBook={handleSearch}
+            handleSearch={handleSearchInput}
+            searchField={searchField}
+          />
+          <div className="books-container">
+            {isLoading ? (
+              <div className="loading">Searching for books...</div>
+            ) : (
+              <BookList books={books} />
+            )}
+          </div>
+        </main>
       </div>
     </div>
   );
-}
+};
 
 export default SearchBooks;

@@ -1,5 +1,6 @@
 import { useAuthUser } from "../security/AuthContext";
 import { Link, useLocation } from "react-router-dom";
+import "../App.css";
 
 export default function Header() {
   const { isAuthenticated, logout } = useAuthUser();

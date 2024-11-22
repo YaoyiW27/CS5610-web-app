@@ -59,7 +59,7 @@ app.post("/register", async (req, res) => {
       data: { 
         email, 
         password: hashedPassword, 
-        displayName   // 确保这个字段名和schema匹配
+        displayName   
       },
       select: { 
         id: true, 
@@ -152,11 +152,47 @@ app.get("/user/favorites", requireAuth, async (req, res) => {
   try {
     const favorites = await prisma.userFavoriteBook.findMany({
       where: { userId: req.userId, unlikedAt: null },
-      include: { book: true },
+      include: { book: true }
     });
 
-    console.log("Fetched favorites:", favorites); 
-    res.json(favorites);
+    const booksWithDetails = await Promise.all(favorites.map(async (fav) => {
+      try {
+        const googleResponse = await fetch(
+          `https://www.googleapis.com/books/v1/volumes/${fav.book.googleBooksId}`
+        );
+        const googleData = await googleResponse.json();
+        
+        return {
+          id: fav.book.googleBooksId,
+          volumeInfo: {
+            title: fav.book.name,
+            authors: [fav.book.author],
+            publishedDate: fav.book.releasedDate,
+            description: fav.book.description,
+            imageLinks: {
+              thumbnail: googleData.volumeInfo?.imageLinks?.thumbnail || null
+            }
+          },
+          cover: googleData.volumeInfo?.imageLinks?.thumbnail || null
+        };
+      } catch (error) {
+        console.error(`Error fetching Google Books data for ${fav.book.googleBooksId}:`, error);
+
+        return {
+          id: fav.book.googleBooksId,
+          volumeInfo: {
+            title: fav.book.name,
+            authors: [fav.book.author],
+            publishedDate: fav.book.releasedDate,
+            description: fav.book.description,
+            imageLinks: { thumbnail: null }
+          },
+          cover: null
+        };
+      }
+    }));
+
+    res.json(booksWithDetails);
   } catch (error) {
     console.error("Error fetching favorites:", error);
     res.status(500).json({ error: "Failed to fetch favorites" });
@@ -166,12 +202,44 @@ app.get("/user/favorites", requireAuth, async (req, res) => {
 app.get("/books/user/reviews", requireAuth, async (req, res) => {
   try {
     const reviews = await prisma.review.findMany({
-      where: { userId: req.userId }, 
-      include: { book: true }, 
+      where: { userId: req.userId },
+      include: { book: true },
     });
 
-    console.log("Fetched reviews:", reviews); 
-    res.json(reviews); 
+    const formattedReviews = await Promise.all(reviews.map(async (review) => {
+      const { book } = review;
+      try {
+        const googleBooksUrl = `https://www.googleapis.com/books/v1/volumes/${book.googleBooksId}`;
+        
+        const googleResponse = await fetch(googleBooksUrl);
+        const googleData = await googleResponse.json();
+      
+
+        const formatted = {
+          id: book.googleBooksId,
+          volumeInfo: {
+            title: googleData.volumeInfo.title,
+            authors: googleData.volumeInfo.authors,
+            publishedDate: googleData.volumeInfo.publishedDate,
+            description: googleData.volumeInfo.description,
+            imageLinks: googleData.volumeInfo.imageLinks
+          },
+          cover: googleData.volumeInfo?.imageLinks?.thumbnail,
+          review: {
+            text: review.text,
+            createdAt: review.createdAt
+          }
+        };
+        
+        return formatted;
+      } catch (error) {
+        console.error(`Error fetching Google Books data for ${book.googleBooksId}:`, error);
+        return null;
+      }
+    }));
+
+    const filteredReviews = formattedReviews.filter(review => review !== null);
+    res.json(filteredReviews);
   } catch (error) {
     console.error("Error fetching user reviews:", error);
     res.status(500).json({ error: "Failed to fetch user reviews" });
@@ -221,24 +289,27 @@ app.get("/books/:id", requireAuth, async (req, res) => {
 
     const googleResponse = await fetch(`https://www.googleapis.com/books/v1/volumes/${googleBooksId}`);
     if (!googleResponse.ok) {
-      throw new Error("Google Books API request failed");
+      throw new Error('Google Books API request failed');
     }
     const googleBookData = await googleResponse.json();
-
+    
     if (!bookInDb) {
       bookInDb = await prisma.book.create({
         data: {
           googleBooksId,
           name: googleBookData.volumeInfo.title,
-          author: googleBookData.volumeInfo.authors?.[0] || "Unknown",
-          description: googleBookData.volumeInfo.description || "",
-          releasedDate: googleBookData.volumeInfo.publishedDate ? new Date(googleBookData.volumeInfo.publishedDate) : null
+          author: googleBookData.volumeInfo.authors?.[0] || 'Unknown',
+          description: googleBookData.volumeInfo.description || '',
+          releasedDate: googleBookData.volumeInfo.publishedDate
+            ? new Date(googleBookData.volumeInfo.publishedDate)
+            : null,
+          cover: googleBookData.volumeInfo.imageLinks?.thumbnail || null, 
         },
         include: {
           userRatings: true,
           userFavorites: true,
-          reviews: true
-        }
+          reviews: true,
+        },
       });
     }
 
@@ -355,7 +426,7 @@ app.post("/books/:id/review", requireAuth, async (req, res) => {
     const { text } = req.body;
 
     if (!googleBooksId || !text) {
-      return res.status(400).json({ error: "Invalid input: Missing GoogleBooksId or text" });
+      return res.status(400).json({ error: "Invalid input" });
     }
 
     const book = await prisma.book.findUnique({
@@ -366,7 +437,22 @@ app.post("/books/:id/review", requireAuth, async (req, res) => {
       return res.status(404).json({ error: "Book not found" });
     }
 
-    const review = await prisma.review.create({
+    // Check if the user already reviewed the book
+    const existingReview = await prisma.review.findFirst({
+      where: { userId: req.userId, bookId: book.id },
+    });
+
+    if (existingReview) {
+      // Update the existing review
+      const updatedReview = await prisma.review.update({
+        where: { id: existingReview.id },
+        data: { text, updatedAt: new Date() },
+      });
+      return res.json(updatedReview);
+    }
+
+    // Create a new review if none exists
+    const newReview = await prisma.review.create({
       data: {
         userId: req.userId,
         bookId: book.id,
@@ -374,10 +460,9 @@ app.post("/books/:id/review", requireAuth, async (req, res) => {
       },
     });
 
-    console.log("Added review:", review); 
-    res.json(review);
+    res.json(newReview);
   } catch (error) {
-    console.error("Error reviewing book:", error);
+    console.error("Error reviewing:", error);
     res.status(500).json({ error: "Failed to add review" });
   }
 });

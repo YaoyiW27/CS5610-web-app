@@ -1,37 +1,41 @@
 import React from 'react';
 
-const SearchArea = (props) => {
+const SearchArea = ({ searchBook, handleSearch, searchField }) => {
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        searchBook(e);
+    };
+
     return (
         <div className="search-area">
-            <div className="search-container">
-                <input 
-                    onChange={props.handleSearch} 
-                    type="text" 
-                    className="search-input" 
-                    placeholder="Search books..."
-                    value={props.searchField} // Control the input value
-                />
+            <form onSubmit={handleSubmit} className="search-container">
+                <div className="search-input-wrapper">
+                    <span className="search-icon">🔍</span>
+                    <input 
+                        onChange={handleSearch} 
+                        type="text" 
+                        className="search-input" 
+                        placeholder="Search books..."
+                        value={searchField}
+                    />
+                </div>
                 <button 
                     type="submit" 
-                    className="search-button" 
-                    onClick={props.searchBook}
+                    className="search-button"
                 >
                     Search
                 </button>
-                <div className="sort-dropdown">
-                    <select 
-                        defaultValue="Sort" 
-                        onChange={props.handleSort}
-                        className="sort-select"
-                    >
-                        <option disabled value="Sort">Sort</option>
-                        <option value="Newest">Newest</option>
-                        <option value="Oldest">Oldest</option>
-                    </select>
-                </div>
-            </div>
+                <select 
+                    defaultValue="Sort" 
+                    className="sort-select"
+                >
+                    <option disabled value="Sort">Sort</option>
+                    <option value="Newest">Newest</option>
+                    <option value="Oldest">Oldest</option>
+                </select>
+            </form>
         </div>
     );
-}
+};
 
 export default SearchArea;

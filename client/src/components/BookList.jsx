@@ -1,39 +1,35 @@
 import React from 'react';
 import BookCard from './BookCard';
+import '../style/MyBooks.css';
 
 const BookList = ({ books = [] }) => {
-    return (
-      <div className="list">
-        {books.map((book, index) => {
-          // Create a unique key using both the book ID and index
-          const uniqueKey = `${book?.id || 'unknown'}-${index}`;
-          
-          // Safely destructure book data with default values
-          const safeBook = {
-            ...book,
-            volumeInfo: {
-              title: book?.volumeInfo?.title || 'No title available',
-              authors: book?.volumeInfo?.authors || ['Unknown author'],
-              publishedDate: book?.volumeInfo?.publishedDate || 'No date available',
-              description: book?.volumeInfo?.description || 'No description available',
-              averageRating: book?.volumeInfo?.averageRating || 0,
-              ratingsCount: book?.volumeInfo?.ratingsCount || 0,
-              imageLinks: {
-                thumbnail: book?.volumeInfo?.imageLinks?.thumbnail || '/placeholder-book.png',
-                ...book?.volumeInfo?.imageLinks
-              }
-            }
-          };
   
-          return (
-            <BookCard 
-              key={uniqueKey}
-              book={safeBook}
-            />
-          );
-        })}       
-      </div>
-    );
+  return (
+    <div className="list">
+      {books.map((book, index) => {
+        
+        const uniqueKey = book?.id || book?.googleBooksId || `book-${index}`;
+        
+        const processedBook = {
+          id: book.id || book.googleBooksId,
+          volumeInfo: {
+            title: book.volumeInfo?.title || book.name || 'No title available',
+            authors: book.volumeInfo?.authors || [book.author] || ['Unknown author'],
+            publishedDate: book.volumeInfo?.publishedDate || book.releasedDate || 'No date available',
+            description: book.volumeInfo?.description || 'No description available',
+            imageLinks: {
+              thumbnail: book.volumeInfo?.imageLinks?.thumbnail || book.cover 
+            }
+          },
+          cover: book.cover || book.volumeInfo?.imageLinks?.thumbnail
+        };
+
+        console.log(`Processed book ${index}:`, processedBook);
+
+        return <BookCard key={uniqueKey} book={processedBook} />;
+      })}
+    </div>
+  );
 };
 
 export default BookList;

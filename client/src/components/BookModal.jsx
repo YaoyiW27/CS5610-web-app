@@ -1,32 +1,39 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import DOMPurify from 'dompurify';
+import '../style/Modal.css'; 
 
 const BookModal = ({ book, onClose, isOpen }) => {
   const navigate = useNavigate();
+  const DEFAULT_IMAGE = 'https://books.google.com/books/content?id=no_cover&printsec=frontcover&img=1&zoom=1&source=gbs_api';
 
   if (!isOpen || !book) return null;
+
+  const bookId = book.id; 
   
-  const googleBooksId = book.id;
+  const getCoverImage = () => {
+      const url = book?.volumeInfo?.imageLinks?.thumbnail || 
+                 book?.volumeInfo?.imageLinks?.smallThumbnail || 
+                 book?.cover || 
+                 DEFAULT_IMAGE;
+      return url.replace('http://', 'https://');
+  };
 
   const {
-    volumeInfo: {
-      title = 'No title available',
-      authors = ['Unknown author'],
+      title = 'Unknown Title',
+      authors = ['Unknown Author'],
       description = 'No description available',
       averageRating = 0,
       ratingsCount = 0,
-      publishedDate = 'No date available',
-    } = {},
-  } = book || {};
+      publishedDate = 'Unknown Date',
+  } = book.volumeInfo || book;
 
-  // 使用 DOMPurify 清理描述内容
+  // use DOMPurify to sanitize the description
   const sanitizedDescription = DOMPurify.sanitize(description);
 
-  // 生成星级评分
   const renderStars = () => {
     const stars = [];
-    const rating = Math.round(averageRating * 2) / 2; // 四舍五入到最近的 0.5
+    const rating = Math.round(averageRating * 2) / 2; 
 
     for (let i = 1; i <= 5; i++) {
       if (i <= rating) {
@@ -52,10 +59,9 @@ const BookModal = ({ book, onClose, isOpen }) => {
     return stars;
   };
 
-  // 处理书名点击事件，导航到书籍详情页面
   const handleTitleClick = () => {
-    onClose(); // 关闭模态框
-    navigate(`/book/${googleBooksId}`); // 使用书籍的 googleBooksId 导航到详情页面
+    onClose(); // close the modal
+    navigate(`/book/${bookId}`); // navigate to the book details page
   };
 
   return (
@@ -65,6 +71,14 @@ const BookModal = ({ book, onClose, isOpen }) => {
           &times;
         </button>
         <div className="modal-header">
+          <img
+            src={getCoverImage()}
+            alt={title}
+            onError={(e) => {
+              e.target.src =  DEFAULT_IMAGE;
+            }}
+            style={{ maxWidth: '100%', marginBottom: '1rem' }}
+          />
           <h2
             onClick={handleTitleClick}
             style={{ cursor: 'pointer', color: '#007bff' }}
@@ -83,7 +97,7 @@ const BookModal = ({ book, onClose, isOpen }) => {
             {publishedDate && ` — published ${publishedDate.substring(0, 4)}`}
           </span>
         </div>
-        {/* 使用 dangerouslySetInnerHTML 渲染描述 */}
+        {/* use dangerouslySetInnerHTML */}
         <div
           className="modal-description"
           dangerouslySetInnerHTML={{ __html: sanitizedDescription }}

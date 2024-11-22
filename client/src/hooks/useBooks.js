@@ -115,7 +115,9 @@ export function useBooks() {
         throw new Error('Failed to fetch favorites');
       }
       
-      return await response.json();
+      const data = await response.json();
+      // 数据已经在后端格式化，直接返回
+      return data;
     } catch (error) {
       setError(error.message);
       throw error;
@@ -135,7 +137,17 @@ export function useBooks() {
         throw new Error('Failed to fetch book details');
       }
       
-      return await response.json();
+      const data = await response.json();
+      return {
+        ...data,
+        volumeInfo: {
+          ...data.volumeInfo,
+          imageLinks: {
+            ...data.volumeInfo?.imageLinks,
+            thumbnail: data.dbData?.cover || data.volumeInfo?.imageLinks?.thumbnail
+          }
+        }
+      };
     } catch (error) {
       setError(error.message);
       throw error;

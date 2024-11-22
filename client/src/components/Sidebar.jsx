@@ -1,16 +1,5 @@
-import React, { useState, useEffect } from 'react';
-
 const Sidebar = ({ onGenreSelect, selectedGenre }) => {
-    const [activeGenre, setActiveGenre] = useState('All genres');
-  
-    useEffect(() => {
-      if (!selectedGenre) {
-        onGenreSelect('All genres');
-      }
-    }, [selectedGenre, onGenreSelect]);
-
     const genres = [
-        'All genres',
         'Art',
         'Biography',
         'Business',
@@ -35,23 +24,21 @@ const Sidebar = ({ onGenreSelect, selectedGenre }) => {
         'Travel'
     ];
 
-    const handleGenreClick = (genre) => {
-        setActiveGenre(genre);
-        onGenreSelect(genre);
-    };
-
     return (
         <div className="sidebar">
             <div className="sidebar-header">Genres</div>
             <div className="sidebar-content">
-                {genres.map((genre, index) => (
-                    <div 
-                        key={index} 
-                        className={`sidebar-item ${genre === activeGenre ? 'active' : ''}`}
-                        onClick={() => handleGenreClick(genre)}
+                {genres.map((genre) => (
+                    <button 
+                        key={genre}
+                        className={`sidebar-item ${genre === selectedGenre ? 'active' : ''}`}
+                        onClick={() => onGenreSelect(genre)}
                     >
-                        {genre}
-                    </div>
+                        <span className="genre-name">{genre}</span>
+                        {genre === selectedGenre && (
+                            <span className="genre-icon">›</span>
+                        )}
+                    </button>
                 ))}
             </div>
         </div>
