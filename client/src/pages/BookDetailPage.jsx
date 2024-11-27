@@ -6,13 +6,16 @@ import "../style/BookDetailPage.css";
 
 function BookDetailPage() {
   const { id } = useParams();
-  const { isAuthenticated } = useAuthUser();
+  const { isAuthenticated, user } = useAuthUser();
   const [book, setBook] = useState(null);
   const [userRating, setUserRating] = useState(0);
   const [userReview, setUserReview] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [userHasReview, setUserHasReview] = useState(false);
+  const [userReviewData, setUserReviewData] = useState(null);
 
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
 
@@ -23,15 +26,27 @@ function BookDetailPage() {
       const bookData = await response.json();
       setBook(bookData);
       setIsFavorite(bookData.dbData.userFavorites?.length > 0);
-      if (bookData.dbData.userRatings?.length > 0) {
-        setUserRating(bookData.dbData.userRatings[0].score);
+      
+      if (!userRating) {
+        setUserRating(bookData.dbData.userRating || 0);
+      }
+      
+      if (user && bookData.dbData.reviews) {
+        const userReview = bookData.dbData.reviews.find(
+          review => review.user.id === user.id
+        );
+        if (userReview) {
+          setUserHasReview(true);
+          setUserReviewData(userReview);
+          setUserReview(userReview.text);
+        }
       }
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [id, API_BASE_URL]);
+  }, [id, API_BASE_URL, user, userRating]);
 
   useEffect(() => {
     fetchBookDetails();
@@ -61,14 +76,18 @@ function BookDetailPage() {
     }
     try {
       const method = userRating ? "PUT" : "POST";
-      await fetch(`${API_BASE_URL}/books/${id}/rate`, {
+      const response = await fetch(`${API_BASE_URL}/books/${id}/rate`, {
         method,
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ score: rating }),
       });
+      
+      if (!response.ok) {
+        throw new Error("Failed to update rating");
+      }
+      
       setUserRating(rating);
-      fetchBookDetails();
     } catch (err) {
       alert(err.message);
     }
@@ -77,40 +96,43 @@ function BookDetailPage() {
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     
-    // Check if the user is logged in
     if (!isAuthenticated) {
       alert("You must be logged in to submit a review.");
       return;
     }
-  
-    // Check if the review input is empty
+
     if (!userReview.trim()) {
       alert("You cannot submit an empty review.");
       return;
     }
-  
+
     try {
+      const method = userHasReview ? "PUT" : "POST";
       const response = await fetch(`${API_BASE_URL}/books/${id}/review`, {
-        method: "POST",
+        method,
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: userReview }),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to submit review");
       }
-  
+
       const data = await response.json();
-      console.log("Review submitted successfully:", data);
-  
-      setUserReview(""); // Clear the review input
-      fetchBookDetails(); // Refresh the book details to include the new review
+      setUserHasReview(true);
+      setUserReviewData(data);
+      setIsEditing(false);
+      fetchBookDetails();
     } catch (err) {
       console.error(err);
       alert(err.message);
     }
+  };
+
+  const handleEditClick = () => {
+    setIsEditing(true);
   };
 
   if (loading) return <div className="loading">Loading...</div>;
@@ -148,23 +170,54 @@ function BookDetailPage() {
                   <span
                     key={star}
                     onClick={() => handleStarClick(star)}
-                    className={`star ${star <= userRating ? "filled" : ""}`}
+                    className={`star ${Number(star) <= Number(userRating) ? "filled" : ""}`}
                   >
                     ★
                   </span>
                 ))}
               </div>
-              <form onSubmit={handleReviewSubmit} className="review-form">
-                <textarea
-                  value={userReview}
-                  onChange={(e) => setUserReview(e.target.value)}
-                  className="review-textarea"
-                  placeholder="Write your review here..."
-                />
-                <button type="submit" className="submit-review-button">
-                  Submit Review
-                </button>
-              </form>
+              {userHasReview && !isEditing ? (
+                <div className="user-review">
+                  <div className="review-header">
+                    <h3>Your Review</h3>
+                    <button onClick={() => setIsEditing(true)} className="edit-review-button">
+                      Edit Review
+                    </button>
+                  </div>
+                  <p className="review-text">{userReview}</p>
+                  <span className="review-dates">
+                    Posted: {new Date(userReviewData.createdAt).toLocaleDateString()}
+                    {userReviewData.updatedAt && 
+                      ` (Edited: ${new Date(userReviewData.updatedAt).toLocaleDateString()})`}
+                  </span>
+                </div>
+              ) : (
+                <form onSubmit={handleReviewSubmit} className="review-form">
+                  <textarea
+                    value={userReview}
+                    onChange={(e) => setUserReview(e.target.value)}
+                    className="review-textarea"
+                    placeholder="Write your review here..."
+                  />
+                  <div className="review-buttons">
+                    <button type="submit" className="submit-review-button">
+                      {isEditing ? 'Save Changes' : 'Submit Review'}
+                    </button>
+                    {isEditing && (
+                      <button 
+                        type="button" 
+                        className="cancel-edit-button"
+                        onClick={() => {
+                          setIsEditing(false);
+                          setUserReview(userReviewData.text);
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                </form>
+              )}
             </>
           )}
           <div className="community-reviews">

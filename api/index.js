@@ -262,11 +262,11 @@ app.get("/books/:id", async (req, res) => {
     const googleBooksId = req.params.id;
     const userId = req.userId;
 
-    // Step 1: Check if the book already exists in the database
     let bookInDb = await prisma.book.findFirst({
       where: { googleBooksId },
       include: {
         userRatings: {
+          where: userId ? { userId } : undefined,
           include: {
             user: {
               select: {
@@ -299,7 +299,6 @@ app.get("/books/:id", async (req, res) => {
       },
     });
 
-    // Step 2: Fetch book data from Google Books API if not found in the database
     let googleBookData;
     try {
       const googleResponse = await fetch(`https://www.googleapis.com/books/v1/volumes/${googleBooksId}`);
@@ -310,12 +309,10 @@ app.get("/books/:id", async (req, res) => {
     } catch (googleError) {
       console.error("Google Books API error:", googleError);
       if (!bookInDb) {
-        // If the book doesn't exist in DB and Google API fails, return an error
         return res.status(500).json({ error: "Failed to fetch book data from external API" });
       }
     }
 
-    // Step 3: Create the book in the database if not already present
     if (!bookInDb && googleBookData) {
       try {
         bookInDb = await prisma.book.create({
@@ -341,7 +338,6 @@ app.get("/books/:id", async (req, res) => {
       }
     }
 
-    // Step 4: Calculate book statistics
     const stats = {
       averageRating:
         bookInDb.userRatings.length > 0
@@ -351,19 +347,13 @@ app.get("/books/:id", async (req, res) => {
       reviewCount: bookInDb.reviews.length,
     };
 
-    // Step 5: Respond with combined data
     res.json({
       id: bookInDb.googleBooksId,
-      volumeInfo: googleBookData?.volumeInfo || {}, // Include Google Book data if available
+      volumeInfo: googleBookData?.volumeInfo || {},
       dbData: {
         ...bookInDb,
         ...stats,
-        userFavorite: userId
-          ? !!bookInDb.userFavorites.find((fav) => fav.userId === userId)
-          : false,
-        userRating: userId
-          ? bookInDb.userRatings.find((rating) => rating.userId === userId)?.score || null
-          : null,
+        userRating: userId && bookInDb.userRatings[0] ? bookInDb.userRatings[0].score : null,
       },
     });
   } catch (error) {
@@ -535,7 +525,10 @@ app.post("/books/:id/review", requireAuth, async (req, res) => {
       // Update the existing review
       const updatedReview = await prisma.review.update({
         where: { id: existingReview.id },
-        data: { text, updatedAt: new Date() },
+        data: { 
+          text, 
+          updatedAt: new Date() 
+        },
       });
       return res.json(updatedReview);
     }
@@ -546,13 +539,73 @@ app.post("/books/:id/review", requireAuth, async (req, res) => {
         userId: req.userId,
         bookId: book.id,
         text,
+        // updatedAt will be null by default for new reviews
       },
+      include: {
+        user: {
+          select: {
+            displayName: true
+          }
+        }
+      }
     });
 
     res.json(newReview);
   } catch (error) {
     console.error("Error reviewing:", error);
     res.status(500).json({ error: "Failed to add review" });
+  }
+});
+
+app.put("/books/:id/review", requireAuth, async (req, res) => {
+  try {
+    const googleBooksId = req.params.id;
+    const { text } = req.body;
+
+    if (!googleBooksId || !text) {
+      return res.status(400).json({ error: "Invalid input" });
+    }
+
+    const book = await prisma.book.findUnique({
+      where: { googleBooksId },
+    });
+
+    if (!book) {
+      return res.status(404).json({ error: "Book not found" });
+    }
+
+    // Find the existing review
+    const existingReview = await prisma.review.findFirst({
+      where: { 
+        userId: req.userId,
+        bookId: book.id
+      },
+    });
+
+    if (!existingReview) {
+      return res.status(404).json({ error: "Review not found. Create a new review first." });
+    }
+
+    // Update the review
+    const updatedReview = await prisma.review.update({
+      where: { id: existingReview.id },
+      data: {
+        text,
+        updatedAt: new Date()
+      },
+      include: {
+        user: {
+          select: {
+            displayName: true
+          }
+        }
+      }
+    });
+
+    res.json(updatedReview);
+  } catch (error) {
+    console.error("Error updating review:", error);
+    res.status(500).json({ error: "Failed to update review" });
   }
 });
 
