@@ -71,7 +71,7 @@ model Review {
   id        Int      @id @default(autoincrement()) @map("review_id")
   text      String   @map("review_text") @db.Text
   createdAt DateTime @default(now()) @map("review_created_at")
-  updatedAt DateTime @updatedAt @map("review_updated_at")
+  updatedAt DateTime? @map("review_updated_at")
   userId    Int      @map("user_id")
   bookId    Int      @map("book_id")
   user      User     @relation(fields: [userId], references: [id])
