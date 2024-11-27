@@ -31,7 +31,7 @@ function BookDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [id, API_BASE_URL, isAuthenticated]);
+  }, [id, API_BASE_URL]);
 
   useEffect(() => {
     fetchBookDetails();
@@ -60,8 +60,9 @@ function BookDetailPage() {
       return;
     }
     try {
+      const method = userRating ? "PUT" : "POST";
       await fetch(`${API_BASE_URL}/books/${id}/rate`, {
-        method: "POST",
+        method,
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ score: rating }),
