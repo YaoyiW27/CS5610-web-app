@@ -1,6 +1,6 @@
 import React from 'react';
 
-const SearchArea = ({ searchBook, handleSearch, searchField }) => {
+const SearchArea = ({ searchBook, handleSearch, searchField, genres = [], onGenreSelect, selectedGenre }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         searchBook(e);
@@ -9,8 +9,11 @@ const SearchArea = ({ searchBook, handleSearch, searchField }) => {
     return (
         <div className="search-area">
             <form onSubmit={handleSubmit} className="search-container">
+                {/* Search Input with Icon */}
                 <div className="search-input-wrapper">
-                    <span className="search-icon">🔍</span>
+                    <div className="search-icon-wrapper">
+                        <span className="search-icon">🔍</span>
+                    </div>
                     <input 
                         onChange={handleSearch} 
                         type="text" 
@@ -18,21 +21,29 @@ const SearchArea = ({ searchBook, handleSearch, searchField }) => {
                         placeholder="Search books..."
                         value={searchField}
                     />
+                    <button 
+                        type="submit" 
+                        className="search-button"
+                    >
+                        Search
+                    </button>
                 </div>
-                <button 
-                    type="submit" 
-                    className="search-button"
-                >
-                    Search
-                </button>
-                <select 
-                    defaultValue="Sort" 
-                    className="sort-select"
-                >
-                    <option disabled value="Sort">Sort</option>
-                    <option value="Newest">Newest</option>
-                    <option value="Oldest">Oldest</option>
-                </select>
+
+                {/* Genres Dropdown */}
+                <div className="genres-dropdown-wrapper">
+                    <select 
+                        value={selectedGenre} 
+                        onChange={(e) => onGenreSelect(e.target.value)} 
+                        className="genres-dropdown"
+                    >
+                        <option value="All genres">All genres</option>
+                        {genres.map((genre) => (
+                            <option key={genre} value={genre}>
+                                {genre}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </form>
         </div>
     );

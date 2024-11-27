@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuthUser } from "../security/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
+import "../style/Auth.css"; // Import your styles here
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -15,16 +16,17 @@ export default function Login() {
       await login(email, password);
       navigate("/search");
     } catch (err) {
-      setError(err.message); 
+      setError(err.message);
     }
   };
 
   return (
-    <div className="login-page">
-      <div className="login-container">
-        <h2>Sign in to Bookly</h2>
-        {error && <div className="error-message">{error}</div>}
-        <form onSubmit={handleSubmit} className="login-form">
+    <div className="auth-page">
+      <div className="auth-container">
+        <h2 className="auth-title">Welcome Back to Bookly</h2>
+        <p className="auth-subtitle">Sign in to continue exploring books</p>
+        {error && <div className="auth-error-message">{error}</div>}
+        <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
@@ -33,6 +35,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="form-input"
             />
           </div>
           <div className="form-group">
@@ -43,12 +46,13 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              className="form-input"
             />
           </div>
-          <button type="submit" className="login-button">Sign In</button>
+          <button type="submit" className="auth-button">Sign In</button>
         </form>
-        <p className="register-link">
-          Not a member? <Link to="/register">Sign up</Link>
+        <p className="auth-footer">
+          Not a member? <Link to="/register" className="auth-link">Sign up</Link>
         </p>
       </div>
     </div>

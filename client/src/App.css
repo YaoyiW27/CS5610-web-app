@@ -14,7 +14,7 @@
 
 /* Navbar - Essential App-wide Navigation Styles */
 .navbar {
-  background-color: #343a40;
+  background-color: #212529; 
   padding: 0.75rem 2rem;
   display: flex;
   justify-content: space-between;
@@ -23,8 +23,13 @@
   position: fixed;
   top: 0;
   width: 100%;
-  z-index: 1000; 
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); 
+  transition: background-color 0.3s ease;
+}
+
+.navbar:hover {
+  background-color: #343a40; 
 }
 
 .navbar-brand {
@@ -35,40 +40,68 @@
 }
 
 .navbar-brand i {
-  font-size: 1.25rem;
-  color: #fff;
+  font-size: 1.5rem; 
+  color: #f8f9fa;
 }
 
-.navbar-brand h1 {
+.navbar-brand a {
   font-size: 1.25rem;
   margin: 0;
   font-weight: 500;
-  color: #fff;
+  color: #f8f9fa; 
+  text-decoration: none;
+  transition: color 0.2s ease; 
+}
+
+.navbar-brand a:hover {
+  color: #adb5bd; 
 }
 
 .navbar-menu {
   display: flex;
-  gap: 2rem;
+  gap: 1.5rem; 
 }
 
 .nav-link {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
   font-size: 1rem;
-  padding: 0.5rem;
-  transition: color 0.2s ease;
-  background-color: transparent; 
-  border: none; 
-  cursor: pointer; 
+  padding: 0.5rem 1rem; 
+  border-radius: 4px; 
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .nav-link:hover {
   color: #fff;
+  background-color: rgba(255, 255, 255, 0.1); 
 }
 
 .nav-link.active {
   color: #fff;
-  border-bottom: 2px solid #fff;
+  border-bottom: none; 
+  background-color: rgba(255, 255, 255, 0.2); 
+}
+
+.auth-buttons {
+  display: flex;
+  gap: 1rem; 
+}
+
+.auth-buttons .nav-link {
+  padding: 0.5rem 1rem; 
+  background-color: #6c757d; 
+  border-radius: 4px; 
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.auth-buttons .nav-link:hover {
+  background-color: #5a6268;
+  color: #fff;
+}
+
+.auth-buttons .nav-link.active {
+  background-color: #343a40;
+  color: #fff;
 }
 
 /* Common Layout */
@@ -128,4 +161,91 @@
   .navbar-menu {
     gap: 1rem;
   }
+}
+
+/* Search Area Styles */
+.search-area {
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 800px;
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  position: relative;
+}
+
+.search-icon-wrapper {
+  position: absolute;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none; /* Prevent interaction with the icon */
+}
+
+.search-icon {
+  font-size: 1.2rem;
+  color: #555; /* Adjust color as needed */
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 12px 10px 35px; /* Add left padding for the icon */
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px 0 0 4px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: #007bff; /* Highlight on focus */
+}
+
+.search-button {
+  padding: 10px 16px;
+  font-size: 1rem;
+  color: #fff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.search-button:hover {
+  background-color: #0056b3;
+}
+
+.genres-dropdown-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.genres-dropdown {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.genres-dropdown:focus {
+  border-color: #007bff; /* Highlight on focus */
 }

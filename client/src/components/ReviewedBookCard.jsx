@@ -2,24 +2,22 @@ import React, { useState } from 'react';
 import BookModal from './BookModal';
 import '../style/MyBooks.css';
 
-const ReviewedBookCard = ({ book }) => {
+const ReviewedBookCard = ({ book, onDeleteReview }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [imageError, setImageError] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
+    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
     const DEFAULT_IMAGE = 'https://books.google.com/books/content?id=no_cover&printsec=frontcover&img=1&zoom=1&source=gbs_api';
 
     const getImageUrl = () => {
         if (imageError) {
-            console.log("Using default image due to error");
             return DEFAULT_IMAGE;
         }
-
         const url = book?.volumeInfo?.imageLinks?.thumbnail || 
                    book?.volumeInfo?.imageLinks?.smallThumbnail || 
                    book?.cover || 
                    DEFAULT_IMAGE;
-                   
-        console.log("Selected image URL:", url);
         return url.replace('http://', 'https://');
     };
 
@@ -31,22 +29,46 @@ const ReviewedBookCard = ({ book }) => {
         setIsModalOpen(false);
     };
 
+    const handleDeleteClick = async (e) => {
+        e.stopPropagation(); // Prevent card click event from firing
+        
+        if (window.confirm('Are you sure you want to delete this review?')) {
+            setIsDeleting(true);
+            try {
+                const response = await fetch(`${API_BASE_URL}/books/${book.id}/review`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to delete review');
+                }
+
+                if (onDeleteReview) {
+                    onDeleteReview(book.id);
+                }
+            } catch (error) {
+                console.error('Error deleting review:', error);
+                alert('Failed to delete review');
+            } finally {
+                setIsDeleting(false);
+            }
+        }
+    };
+
     return (
         <>
             <div className="card-container" onClick={handleCardClick}>
-                {/* Cover */}
                 <img 
                     src={getImageUrl()}
                     alt={book?.volumeInfo?.title || 'Book cover'}
                     onError={(e) => {
-                        console.error(`Failed to load image for book:`, book);
                         setImageError(true);
                         e.target.src = DEFAULT_IMAGE;
                     }}
                     className="book-cover"
                 />
 
-                {/* Description */}
                 <div className="desc">
                     <h2>{book?.volumeInfo?.title || 'Unknown Title'}</h2>
                     <h3>
@@ -59,17 +81,21 @@ const ReviewedBookCard = ({ book }) => {
                     </p>
                 </div>
 
-                {/* Your Review */}
                 <div className="review-content">
                     <h4>Your Review:</h4>
                     <p>{book.review.text}</p>
                     <span className="review-date">
                         {new Date(book.review.createdAt).toLocaleDateString()}
                     </span>
+                    <button 
+                        onClick={handleDeleteClick}
+                        disabled={isDeleting}
+                    >
+                        {isDeleting ? 'Deleting...' : 'Delete Review'}
+                    </button>
                 </div>
             </div>
 
-            {/* Modal */}
             {isModalOpen && (
                 <BookModal 
                     book={book}
