@@ -447,13 +447,13 @@ app.post("/books/:id/rate", requireAuth, async (req, res) => {
     }
 
     const existingRating = await prisma.userRateBook.findFirst({
-      where: { userId: req.userId, bookId: book.id, unratedAt: null },
+      where: { userId: req.userId, bookId: book.id },
     });
 
     if (existingRating) {
       const updatedRating = await prisma.userRateBook.update({
         where: { id: existingRating.id },
-        data: { score, ratedAt: new Date() },
+        data: { score, updatedAt: new Date() },
       });
       return res.json(updatedRating);
     } else {
@@ -499,7 +499,7 @@ app.put("/books/:id/rate", requireAuth, async (req, res) => {
 
     const updatedRating = await prisma.userRateBook.update({
       where: { id: existingRating.id },
-      data: { score, ratedAt: new Date() },
+      data: { score, updatedAt: new Date() },
     });
 
     res.json(updatedRating);
