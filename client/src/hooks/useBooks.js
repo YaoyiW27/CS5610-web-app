@@ -1,4 +1,3 @@
-// src/hooks/useBooks.js
 import { useState } from 'react';
 
 export function useBooks() {
@@ -116,7 +115,7 @@ export function useBooks() {
       }
       
       const data = await response.json();
-      // 数据已经在后端格式化，直接返回
+      // Data is already formatted in the backend, return directly
       return data;
     } catch (error) {
       setError(error.message);

@@ -12,86 +12,64 @@ function MyBooks() {
   const [error, setError] = useState(null);
   const { isAuthenticated } = useAuthUser();
 
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 
   useEffect(() => {
-    async function fetchUserBooks() {
-        console.log("Fetching user books...");
-    
-        try {
-            const favResponse = await fetch(`${API_BASE_URL}/user/favorites`, { 
-                credentials: "include" 
-            });
+    let isMounted = true;
 
-            const reviewResponse = await fetch(`${API_BASE_URL}/books/user/reviews`, { 
-                credentials: "include" 
-            });
-            
-            if (favResponse.ok) {
-                const favorites = await favResponse.json();
-                console.log("Raw favorites data:", JSON.stringify(favorites, null, 2));
-                
-                const processedFavorites = favorites.map(favorite => ({
-                    id: favorite.id,
-                    volumeInfo: {
-                        title: favorite.volumeInfo.title,
-                        authors: favorite.volumeInfo.authors,
-                        publishedDate: favorite.volumeInfo.publishedDate,
-                        description: favorite.volumeInfo.description,
-                        imageLinks: favorite.volumeInfo.imageLinks
-                    },
-                    cover: favorite.cover
-                }));
-                
-                console.log("Processed favorites:", processedFavorites);
-                setFavoriteBooks(processedFavorites);
-            } else {
-                throw new Error("Failed to fetch favorites");
-            }
+    const fetchUserBooks = async () => {
+      if (!isAuthenticated) {
+        setLoading(false);
+        return;
+      }
 
-            if (reviewResponse.ok) {
-              const reviews = await reviewResponse.json();
-              console.log("Raw reviews data:", JSON.stringify(reviews, null, 2));
-              setReviewedBooks(reviews); 
+      try {
+        const [favResponse, reviewResponse] = await Promise.all([
+          fetch(`${API_BASE_URL}/user/favorites`, { credentials: "include" }),
+          fetch(`${API_BASE_URL}/books/user/reviews`, { credentials: "include" })
+        ]);
 
-              const processedReviews = reviews.map(review => ({
-                id: review.id,
-                volumeInfo: {
-                  title: review.volumeInfo.title,
-                  authors: review.volumeInfo.authors,
-                  publishedDate: review.volumeInfo.publishedDate,
-                  description: review.volumeInfo.description,
-                  imageLinks: review.volumeInfo.imageLinks 
-                },
-                // get pic from volumeInfo.imageLinks 
-                cover: review.volumeInfo.imageLinks?.thumbnail || '', 
-                review: {
-                  text: review.review.text,
-                  createdAt: review.review.createdAt
-                }
-              }));
-              
-              console.log("Processed reviews:", processedReviews);
-
-            }  else {
-                throw new Error("Failed to fetch reviews");
-            }
-
-        } catch (err) {
-            console.error("Error:", err);
-            setError(err.message);
-        } finally {
-            setLoading(false);
+        if (!favResponse.ok) {
+          throw new Error(`Failed to fetch favorites: ${favResponse.statusText}`);
         }
-    }
+        if (!reviewResponse.ok) {
+          throw new Error(`Failed to fetch reviews: ${reviewResponse.statusText}`);
+        }
 
-    if (isAuthenticated) {
-        fetchUserBooks();
-    }
-}, [isAuthenticated, API_BASE_URL]);
+        const favorites = await favResponse.json();
+        const reviews = await reviewResponse.json();
+
+        if (isMounted) {
+          setFavoriteBooks(favorites);
+          setReviewedBooks(reviews);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        if (isMounted) {
+          setError(err.message);
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchUserBooks();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, API_BASE_URL]);
+
+  const handleDeleteReview = (bookId) => {
+    setReviewedBooks(prevBooks => prevBooks.filter(book => book.id !== bookId));
+  };
+
+  if (!isAuthenticated) {
+    return <div className="main-container">Please login to view your books.</div>;
+  }
 
   if (loading) return <div className="loading">Loading your books...</div>;
-  if (error) return <div className="error">Error: {error}</div>;
+  if (error) return <div className="error">{error}</div>;
 
   return (
     <div className="main-container">
@@ -125,7 +103,10 @@ function MyBooks() {
             ) : (
               reviewedBooks?.length > 0 ? (
                 <div className="reviewed-books-list">
-                  <ReviewedBookList books={reviewedBooks} />
+                  <ReviewedBookList 
+                    books={reviewedBooks} 
+                    onDeleteReview={handleDeleteReview}
+                  />
                 </div>
               ) : (
                 <div className="empty-state">No reviewed books yet</div>

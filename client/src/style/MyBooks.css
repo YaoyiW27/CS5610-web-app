@@ -1,229 +1,167 @@
-.main-container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  box-sizing: border-box;
-}
-
-.content-area {
-  margin-top: 20px;
-}
-
+/* Tabs and content layout */
 .my-books-tabs {
   margin-top: 20px;
 }
 
 .tabs-header {
   display: flex;
-  gap: 10px;
+  border-bottom: 2px solid #eeeeee;
   margin-bottom: 20px;
-  border-bottom: 1px solid #eee;
 }
 
 .tab-button {
-  padding: 8px 16px;
-  border: none;
-  background: none;
-  border-bottom: 2px solid transparent;
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  font-size: 16px;
   cursor: pointer;
-  font-size: 1rem;
-  color: #666;
-  transition: color 0.2s, border-color 0.2s;
-  border-radius: 4px;
+  border: none;
+  background-color: transparent;
+  color: #666666;
+  transition: color 0.2s ease;
 }
 
 .tab-button.active {
-  border-bottom: 2px solid #007bff;
+  font-weight: bold;
   color: #007bff;
+  border-bottom: 2px solid #007bff;
 }
 
 .tab-button:hover {
-  color: #007bff;
+  color: #0056b3;
 }
 
-.tabs-content {
-  padding: 20px 0;
-  width: 100%;
-  box-sizing: border-box;
+/* Favorites and Reviewed Grid - Horizontal layout */
+.favorites-grid,
+.reviewed-books-list {
+  display: flex; /* Horizontal layout */
+  flex-wrap: nowrap; /* Prevent items from wrapping */
+  gap: 20px; /* Space between cards */
+  padding: 20px;
+  overflow-x: auto; /* Enable horizontal scrolling */
+  scrollbar-width: thin; /* Firefox scrollbar style */
+  scrollbar-color: #cccccc #f8f9fa; /* Thumb and track colors */
 }
 
-.list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 20px;
-  width: 100%;
-  box-sizing: border-box;
+/* Scrollbar styling for WebKit browsers */
+.favorites-grid::-webkit-scrollbar,
+.reviewed-books-list::-webkit-scrollbar {
+  height: 8px; /* Horizontal scrollbar height */
 }
 
-.book-card-wrapper,
+.favorites-grid::-webkit-scrollbar-thumb,
+.reviewed-books-list::-webkit-scrollbar-thumb {
+  background-color: #cccccc; /* Thumb color */
+  border-radius: 4px;
+}
+
+.favorites-grid::-webkit-scrollbar-track,
+.reviewed-books-list::-webkit-scrollbar-track {
+  background-color: #f8f9fa; /* Track color */
+}
+
+/* Book Card styles */
 .card-container {
-  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px;
-  border: 1px solid #eee;
+  background-color: #ffffff;
+  border: 1px solid #dddddd;
   border-radius: 8px;
-  background: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-sizing: border-box;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+  width: 180px; /* Fixed card width for consistent layout */
 }
 
-.book-card-wrapper:hover,
 .card-container:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transform: scale(1.05); /* Subtle hover effect */
 }
 
 .book-cover {
   width: 100%;
-  height: auto;
-  aspect-ratio: 2 / 3; 
-  object-fit: cover;
-  border-radius: 4px;
-  margin-bottom: 10px;
-  background-color: #f5f5f5;
+  height: 240px; /* Fixed height for images */
+  object-fit: cover; /* Ensure the image fills the container */
+  border-bottom: 1px solid #dddddd;
 }
 
 .desc {
+  padding: 15px;
   text-align: center;
-  margin-top: 10px;
-  width: 100%;
 }
 
 .desc h2 {
-  font-size: 0.9rem;
-  margin: 4px 0;
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
+  font-size: 16px;
+  font-weight: bold;
+  color: #333333;
+  margin: 5px 0;
 }
 
 .desc h3 {
-  font-size: 0.8rem;
-  color: #666;
-  margin: 4px 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-  -webkit-box-orient: vertical;
+  font-size: 14px;
+  font-weight: normal;
+  color: #666666;
+  margin: 5px 0;
 }
 
 .desc p {
-  font-size: 0.75rem;
-  color: #999;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
+  font-size: 12px;
+  color: #999999;
 }
 
+/* Reviewed Book Card */
 .review-content {
-  margin-top: 12px;
+  padding: 10px;
+  background-color: #f8f9fa;
   text-align: center;
-  width: 100%;
 }
 
 .review-content h4 {
-  font-size: 0.9rem;
-  margin: 0 0 6px;
-  color: #333;
+  font-size: 14px;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 10px;
 }
 
 .review-content p {
-  font-size: 0.8rem;
-  color: #555;
-  margin-bottom: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
+  font-size: 12px;
+  color: #666666;
 }
 
-.review-date {
-  font-size: 0.75rem;
-  color: #888;
+.review-content .review-date {
+  font-size: 12px;
+  color: #999999;
+  margin-top: 10px;
 }
 
-.loading {
-  text-align: center;
-  padding: 20px;
-  font-size: 1.2rem;
-  color: #666;
+.review-content button {
+  margin-top: 10px;
+  padding: 5px 10px;
+  font-size: 12px;
+  color: #ffffff;
+  background-color: #e63946;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
-.error {
-  text-align: center;
-  padding: 20px;
-  color: #dc3545;
+.review-content button:hover {
+  background-color: #d32f2f;
 }
 
+/* Empty state styling */
 .empty-state {
   text-align: center;
   padding: 40px;
-  color: #666;
-  font-size: 1rem;
+  font-size: 16px;
+  color: #999999;
 }
 
-@media (min-width: 1200px) {
-  .list {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 20px;
-  }
-
-  .book-card-wrapper,
-  .card-container {
-    max-width: 200px;
-  }
-
-  .book-cover {
-    width: 100%;
-    aspect-ratio: 2 / 3;
-  }
-}
-
-@media (max-width: 768px) {
-  .list {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 15px;
-  }
-
-  .book-card-wrapper,
-  .card-container {
-    max-width: 150px;
-  }
-}
-
-@media (max-width: 480px) {
-  .list {
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 10px;
-  }
-
-  .book-card-wrapper,
-  .card-container {
-    max-width: 130px;
-    padding: 8px;
-  }
-
-  .book-cover {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 2 / 3;
-  }
-
-  .desc h2 {
-    font-size: 0.8rem;
-  }
+/* Loading state */
+.loading {
+  text-align: center;
+  font-size: 16px;
+  color: #666666;
+  margin-top: 20px;
 }

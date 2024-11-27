@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuthUser } from "../security/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
+import "../style/Auth.css";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -9,7 +10,7 @@ export default function Register() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const { register } = useAuthUser(); 
+  const { register } = useAuthUser();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,11 +23,12 @@ export default function Register() {
   };
 
   return (
-    <div className="register-page">
-      <div className="register-container">
-        <h2>Sign up for Bookly</h2>
-        {error && <div className="error-message">{error}</div>}
-        <form onSubmit={handleSubmit} className="register-form">
+    <div className="auth-page">
+      <div className="auth-container">
+        <h2 className="auth-title">Join Bookly Today</h2>
+        <p className="auth-subtitle">Create an account to start your journey</p>
+        {error && <div className="auth-error-message">{error}</div>}
+        <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
@@ -35,6 +37,7 @@ export default function Register() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="form-input"
             />
           </div>
           <div className="form-group">
@@ -45,6 +48,7 @@ export default function Register() {
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               required
+              className="form-input"
             />
           </div>
           <div className="form-group">
@@ -55,12 +59,13 @@ export default function Register() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              className="form-input"
             />
           </div>
-          <button type="submit" className="register-button">Sign Up</button>
+          <button type="submit" className="auth-button">Sign Up</button>
         </form>
-        <p className="login-link">
-          Already a member? <Link to="/login">Sign in</Link>
+        <p className="auth-footer">
+          Already a member? <Link to="/login" className="auth-link">Sign in</Link>
         </p>
       </div>
     </div>

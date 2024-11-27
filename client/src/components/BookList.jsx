@@ -3,13 +3,10 @@ import BookCard from './BookCard';
 import '../style/MyBooks.css';
 
 const BookList = ({ books = [] }) => {
-  
   return (
-    <div className="list">
+    <div className="favorites-grid"> 
       {books.map((book, index) => {
-        
         const uniqueKey = book?.id || book?.googleBooksId || `book-${index}`;
-        
         const processedBook = {
           id: book.id || book.googleBooksId,
           volumeInfo: {
@@ -18,14 +15,11 @@ const BookList = ({ books = [] }) => {
             publishedDate: book.volumeInfo?.publishedDate || book.releasedDate || 'No date available',
             description: book.volumeInfo?.description || 'No description available',
             imageLinks: {
-              thumbnail: book.volumeInfo?.imageLinks?.thumbnail || book.cover 
-            }
+              thumbnail: book.volumeInfo?.imageLinks?.thumbnail || book.cover,
+            },
           },
-          cover: book.cover || book.volumeInfo?.imageLinks?.thumbnail
+          cover: book.cover || book.volumeInfo?.imageLinks?.thumbnail,
         };
-
-        console.log(`Processed book ${index}:`, processedBook);
-
         return <BookCard key={uniqueKey} book={processedBook} />;
       })}
     </div>

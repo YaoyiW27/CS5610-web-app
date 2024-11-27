@@ -1,29 +1,25 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
-import { useAuthUser } from '../security/AuthContext';
-import DOMPurify from 'dompurify';
-import '../style/BookDetailPage.css';
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams } from "react-router-dom";
+import { useAuthUser } from "../security/AuthContext";
+import DOMPurify from "dompurify";
+import "../style/BookDetailPage.css";
 
 function BookDetailPage() {
   const { id } = useParams();
   const { isAuthenticated } = useAuthUser();
   const [book, setBook] = useState(null);
   const [userRating, setUserRating] = useState(0);
-  const [userReview, setUserReview] = useState('');
+  const [userReview, setUserReview] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
 
   const fetchBookDetails = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/books/${id}`, {
-        credentials: 'include'
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch book details');
-      }
+      const response = await fetch(`${API_BASE_URL}/books/${id}`, { credentials: "include" });
+      if (!response.ok) throw new Error("Failed to fetch book details");
       const bookData = await response.json();
       setBook(bookData);
       setIsFavorite(bookData.dbData.userFavorites?.length > 0);
@@ -35,7 +31,7 @@ function BookDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [id, API_BASE_URL]);
+  }, [id, API_BASE_URL, isAuthenticated]);
 
   useEffect(() => {
     fetchBookDetails();
@@ -43,75 +39,73 @@ function BookDetailPage() {
 
   const handleFavoriteClick = async () => {
     if (!isAuthenticated) {
-      alert('You must be logged in to add/remove favorites.');  
+      alert("You must be logged in to add/remove favorites.");
       return;
     }
     try {
       const response = await fetch(`${API_BASE_URL}/books/${id}/favorite`, {
-        method: 'POST',
-        credentials: 'include', 
+        method: "POST",
+        credentials: "include",
       });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to add/remove favorite');
-      }
-      const data = await response.json();
-      console.log('Favorite response:', data);
+      if (!response.ok) throw new Error("Failed to toggle favorite");
       setIsFavorite(!isFavorite);
     } catch (err) {
-      console.error(err);
       alert(err.message);
     }
   };
 
   const handleStarClick = async (rating) => {
     if (!isAuthenticated) {
-      alert('您必须登录才能评分。');
+      alert("You must be logged in to rate the book.");
       return;
     }
     try {
-      const response = await fetch(`${API_BASE_URL}/books/${id}/rate`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ score: rating })
+      await fetch(`${API_BASE_URL}/books/${id}/rate`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ score: rating }),
       });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to rate the book');
-      }
-      const data = await response.json();
-      console.log('Rating response:', data);
       setUserRating(rating);
       fetchBookDetails();
     } catch (err) {
-      console.error(err);
       alert(err.message);
     }
   };
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
-    if (!isAuthenticated || !userReview.trim()) {
-      alert('You must be logged in and enter a review to submit.');
+    
+    // Check if the user is logged in
+    if (!isAuthenticated) {
+      alert("You must be logged in to submit a review.");
       return;
     }
-
+  
+    // Check if the review input is empty
+    if (!userReview.trim()) {
+      alert("You cannot submit an empty review.");
+      return;
+    }
+  
     try {
       const response = await fetch(`${API_BASE_URL}/books/${id}/review`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: userReview }) 
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: userReview }),
       });
+  
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to submit review');
+        throw new Error(errorData.error || "Failed to submit review");
       }
+  
       const data = await response.json();
-
-      setUserReview(''); 
-      fetchBookDetails(); 
+      console.log("Review submitted successfully:", data);
+  
+      setUserReview(""); // Clear the review input
+      fetchBookDetails(); // Refresh the book details to include the new review
     } catch (err) {
       console.error(err);
       alert(err.message);
@@ -120,42 +114,76 @@ function BookDetailPage() {
 
   if (loading) return <div className="loading">Loading...</div>;
   if (error) return <div className="error">{error}</div>;
-  if (!book) return <div>Book not found</div>;
 
-  const sanitizedDescription = DOMPurify.sanitize(book.volumeInfo?.description || '');
+  const sanitizedDescription = DOMPurify.sanitize(book.volumeInfo?.description || "");
 
   return (
     <div className="book-detail-page">
-      {book && (
-        <>
-          <h1>{book.volumeInfo.title}</h1>
-          <div className="favorite-section">
-            <button onClick={handleFavoriteClick}>
-              {isFavorite ? 'Remove from Favorites' : 'Add to Favorite'}
-            </button>
-          </div>
-          <div className="rating-section">
-            {[1, 2, 3, 4, 5].map(star => (
-              <span key={star} onClick={() => handleStarClick(star)} style={{ cursor: 'pointer', fontSize: '24px', color: star <= userRating ? '#FFD700' : '#CCCCCC' }}>
-                {star <= userRating ? '★' : '☆'}
-              </span>
-            ))}
-          </div>
-          <div 
-            className="description"
+      <div className="book-detail-container">
+        <div className="left-column">
+          <img
+            src={book.volumeInfo.imageLinks?.thumbnail || "/placeholder.png"}
+            alt={book.volumeInfo.title}
+            className="book-cover"
+          />
+          <button
+            onClick={handleFavoriteClick}
+            className={`favorite-button ${isFavorite ? "favorited" : ""}`}
+          >
+            {isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+          </button>
+        </div>
+        <div className="right-column">
+          <h1 className="book-title">{book.volumeInfo.title}</h1>
+          <p className="book-authors">by {book.volumeInfo.authors?.join(", ") || "Unknown Author"}</p>
+          <div
+            className="book-description"
             dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
           />
-          <form onSubmit={handleReviewSubmit}>
-            <textarea
-              value={userReview}
-              onChange={(e) => setUserReview(e.target.value)}
-              placeholder="Enter your review here..."
-              required
-            />
-            <button type="submit">Submit Review</button>
-          </form>
-        </>
-      )}
+          {isAuthenticated && (
+            <>
+              <div className="stars">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <span
+                    key={star}
+                    onClick={() => handleStarClick(star)}
+                    className={`star ${star <= userRating ? "filled" : ""}`}
+                  >
+                    ★
+                  </span>
+                ))}
+              </div>
+              <form onSubmit={handleReviewSubmit} className="review-form">
+                <textarea
+                  value={userReview}
+                  onChange={(e) => setUserReview(e.target.value)}
+                  className="review-textarea"
+                  placeholder="Write your review here..."
+                />
+                <button type="submit" className="submit-review-button">
+                  Submit Review
+                </button>
+              </form>
+            </>
+          )}
+          <div className="community-reviews">
+            <h2>Community Reviews</h2>
+            {book.dbData.reviews.length > 0 ? (
+              book.dbData.reviews.map((review) => (
+                <div key={review.id} className="review-item">
+                  <div className="review-header">
+                    <span className="reviewer-name">{review.user.displayName}</span>
+                    <span className="review-date">{new Date(review.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <p className="review-text">{review.text}</p>
+                </div>
+              ))
+            ) : (
+              <div className="no-reviews">No reviews yet. Be the first to leave one!</div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

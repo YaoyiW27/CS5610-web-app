@@ -44,11 +44,12 @@ model Book {
 model UserFavoriteBook {
   id        Int       @id @default(autoincrement()) @map("like_id")
   likedAt   DateTime  @default(now()) @map("liked_at")
-  unlikedAt DateTime? @map("unliked_at")
   userId    Int       @map("user_id")
   bookId    Int       @map("book_id")
   user      User      @relation(fields: [userId], references: [id])
   book      Book      @relation(fields: [bookId], references: [id])
+
+  @@unique([userId, bookId])
 
   @@map("users_favorite_books")
 }

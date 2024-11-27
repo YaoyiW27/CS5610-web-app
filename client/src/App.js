@@ -7,9 +7,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import BookDetailPage from './pages/BookDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import { AuthProvider } from "./security/AuthContext";
 import './App.css';
 import './style/Layout.css';
-import { AuthProvider } from "./security/AuthContext";
 
 function App() {
   return (
@@ -24,7 +24,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/my-books" element={<ProtectedRoute><MyBooks /></ProtectedRoute>} />
-              <Route path="/book/:id" element={<ProtectedRoute><BookDetailPage /></ProtectedRoute>} />
+              <Route path="/book/:id" element={<BookDetailPage />} />
             </Routes>
           </div>
         </div>
