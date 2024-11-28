@@ -384,6 +384,50 @@ app.get("/books/user/reviews", requireAuth, async (req, res) => {
   }
 });
 
+// User's rated books
+app.get("/books/user/ratings", requireAuth, async (req, res) => {
+  try {
+    const ratings = await prisma.userRateBook.findMany({
+      where: { userId: req.userId },
+      include: { book: true },
+    });
+
+    const formattedRatings = await Promise.all(ratings.map(async (rating) => {
+      const { book } = rating;
+      try {
+        const googleBooksUrl = `https://www.googleapis.com/books/v1/volumes/${book.googleBooksId}`;
+        const googleResponse = await fetch(googleBooksUrl);
+        const googleData = await googleResponse.json();
+
+        return {
+          id: book.googleBooksId,
+          volumeInfo: {
+            title: googleData.volumeInfo.title,
+            authors: googleData.volumeInfo.authors,
+            publishedDate: googleData.volumeInfo.publishedDate,
+            description: googleData.volumeInfo.description,
+            imageLinks: googleData.volumeInfo.imageLinks
+          },
+          cover: googleData.volumeInfo?.imageLinks?.thumbnail,
+          rating: {
+            score: rating.score,
+            createdAt: rating.createdAt
+          }
+        };
+      } catch (error) {
+        console.error(`Error fetching Google Books data for ${book.googleBooksId}:`, error);
+        return null;
+      }
+    }));
+
+    const filteredRatings = formattedRatings.filter(rating => rating !== null);
+    res.json(filteredRatings);
+  } catch (error) {
+    console.error("Error fetching user ratings:", error);
+    res.status(500).json({ error: "Failed to fetch user ratings" });
+  }
+});
+
 
 // ===== Book Interaction Endpoints =====
 // Post favorite

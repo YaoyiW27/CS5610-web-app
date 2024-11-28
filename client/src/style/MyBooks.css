@@ -1,4 +1,4 @@
-/* Tabs and content layout */
+/* Tab Navigation */
 .my-books-tabs {
   margin-top: 20px;
 }
@@ -31,36 +31,19 @@
   color: #0056b3;
 }
 
-/* Favorites and Reviewed Grid - Horizontal layout */
+/* Book Grid Layout */
 .favorites-grid,
-.reviewed-books-list {
-  display: flex; /* Horizontal layout */
-  flex-wrap: nowrap; /* Prevent items from wrapping */
-  gap: 20px; /* Space between cards */
+.rated-reviewed-books-list {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 20px;
   padding: 20px;
-  overflow-x: auto; /* Enable horizontal scrolling */
-  scrollbar-width: thin; /* Firefox scrollbar style */
-  scrollbar-color: #cccccc #f8f9fa; /* Thumb and track colors */
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cccccc #f8f9fa;
 }
 
-/* Scrollbar styling for WebKit browsers */
-.favorites-grid::-webkit-scrollbar,
-.reviewed-books-list::-webkit-scrollbar {
-  height: 8px; /* Horizontal scrollbar height */
-}
-
-.favorites-grid::-webkit-scrollbar-thumb,
-.reviewed-books-list::-webkit-scrollbar-thumb {
-  background-color: #cccccc; /* Thumb color */
-  border-radius: 4px;
-}
-
-.favorites-grid::-webkit-scrollbar-track,
-.reviewed-books-list::-webkit-scrollbar-track {
-  background-color: #f8f9fa; /* Track color */
-}
-
-/* Book Card styles */
+/* Book Card Base Styles */
 .card-container {
   display: flex;
   flex-direction: column;
@@ -71,17 +54,18 @@
   overflow: hidden;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease;
-  width: 180px; /* Fixed card width for consistent layout */
+  width: 180px;
 }
 
 .card-container:hover {
-  transform: scale(1.05); /* Subtle hover effect */
+  transform: scale(1.05);
 }
 
+/* Book Card Content */
 .book-cover {
   width: 100%;
-  height: 240px; /* Fixed height for images */
-  object-fit: cover; /* Ensure the image fills the container */
+  height: 240px;
+  object-fit: cover;
   border-bottom: 1px solid #dddddd;
 }
 
@@ -109,48 +93,70 @@
   color: #999999;
 }
 
-/* Reviewed Book Card */
-.review-content {
+/* Review Specific Styles */
+.rated-reviewed-books-list .review-content {
   padding: 10px;
+  margin: 10px 0;
   background-color: #f8f9fa;
   text-align: center;
 }
 
-.review-content h4 {
+.rated-reviewed-books-list .review-content h4 {
   font-size: 14px;
   font-weight: bold;
   color: #333333;
   margin-bottom: 10px;
 }
 
-.review-content p {
+.rated-reviewed-books-list .review-content p {
   font-size: 12px;
   color: #666666;
 }
 
-.review-content .review-date {
+.rated-reviewed-books-list .review-content .review-date {
   font-size: 12px;
   color: #999999;
   margin-top: 10px;
 }
 
-.review-content button {
+.rated-reviewed-books-list .delete-button {
   margin-top: 10px;
-  padding: 5px 10px;
-  font-size: 12px;
-  color: #ffffff;
-  background-color: #e63946;
+  padding: 8px 16px;
+  background-color: #dc3545;
+  color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s;
 }
 
-.review-content button:hover {
-  background-color: #d32f2f;
+.rated-reviewed-books-list .delete-button:hover {
+  background-color: #c82333;
 }
 
-/* Empty state styling */
+.rated-reviewed-books-list .delete-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* Star Rating Component */
+.stars-container {
+  display: flex;
+  align-items: center;
+  margin: 8px 0;
+}
+
+.star {
+  font-size: 20px;
+  cursor: default;
+  color: #e4e5e9;
+}
+
+.star.filled {
+  color: #ffd700;
+}
+
+/* Utility States */
 .empty-state {
   text-align: center;
   padding: 40px;
@@ -158,10 +164,26 @@
   color: #999999;
 }
 
-/* Loading state */
 .loading {
   text-align: center;
   font-size: 16px;
   color: #666666;
   margin-top: 20px;
+}
+
+/* Scrollbar Styling */
+.favorites-grid::-webkit-scrollbar,
+.rated-reviewed-books-list::-webkit-scrollbar {
+  height: 8px;
+}
+
+.favorites-grid::-webkit-scrollbar-thumb,
+.rated-reviewed-books-list::-webkit-scrollbar-thumb {
+  background-color: #cccccc;
+  border-radius: 4px;
+}
+
+.favorites-grid::-webkit-scrollbar-track,
+.rated-reviewed-books-list::-webkit-scrollbar-track {
+  background-color: #f8f9fa;
 }
