@@ -57,14 +57,22 @@ function BookDetailPage() {
       alert("You must be logged in to add/remove favorites.");
       return;
     }
+    
     try {
+      const method = isFavorite ? "DELETE" : "POST";
       const response = await fetch(`${API_BASE_URL}/books/${id}/favorite`, {
-        method: "POST",
+        method,
         credentials: "include",
       });
-      if (!response.ok) throw new Error("Failed to toggle favorite");
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to update favorite status");
+      }
+      
       setIsFavorite(!isFavorite);
     } catch (err) {
+      console.error("Favorite error:", err);
       alert(err.message);
     }
   };
@@ -129,10 +137,6 @@ function BookDetailPage() {
       console.error(err);
       alert(err.message);
     }
-  };
-
-  const handleEditClick = () => {
-    setIsEditing(true);
   };
 
   if (loading) return <div className="loading">Loading...</div>;
