@@ -252,13 +252,17 @@ app.get("/books/:id", async (req, res) => {
       reviewCount: bookInDb.reviews.length,
     };
 
+    const userRating = bookInDb.userRatings.find(
+      rating => rating.userId === req.userId
+    )?.score || null;
+
     res.json({
       id: bookInDb.googleBooksId,
       volumeInfo: googleBookData?.volumeInfo || {},
       dbData: {
         ...bookInDb,
         ...stats,
-        userRating: userId && bookInDb.userRatings[0] ? bookInDb.userRatings[0].score : null,
+        userRating: userRating,
       },
     });
   } catch (error) {
@@ -555,6 +559,37 @@ app.put("/books/:id/rate", requireAuth, async (req, res) => {
   } catch (error) {
     console.error("Error updating rating:", error);
     res.status(500).json({ error: "Failed to update rating" });
+  }
+});
+
+// Delete rate
+app.delete("/books/:id/rate", requireAuth, async (req, res) => {
+  try {
+    const googleBooksId = req.params.id;
+    const book = await prisma.book.findUnique({
+      where: { googleBooksId },
+    });
+
+    if (!book) {
+      return res.status(404).json({ error: "Book not found" });
+    }
+
+    const existingRating = await prisma.userRateBook.findFirst({
+      where: { userId: req.userId, bookId: book.id },
+    });
+
+    if (!existingRating) {
+      return res.status(404).json({ error: "Rating not found" });
+    }
+
+    await prisma.userRateBook.delete({
+      where: { id: existingRating.id },
+    });
+
+    res.json({ message: "Rating deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting rating:", error);
+    res.status(500).json({ error: "Failed to delete rating" });
   }
 });
 

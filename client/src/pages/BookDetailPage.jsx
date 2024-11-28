@@ -16,6 +16,7 @@ function BookDetailPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [userHasReview, setUserHasReview] = useState(false);
   const [userReviewData, setUserReviewData] = useState(null);
+  const [tempRating, setTempRating] = useState(0);
 
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
 
@@ -24,29 +25,48 @@ function BookDetailPage() {
       const response = await fetch(`${API_BASE_URL}/books/${id}`, { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch book details");
       const bookData = await response.json();
+      
+      console.log('Fetched book data:', bookData);
+
       setBook(bookData);
       setIsFavorite(bookData.dbData.userFavorites?.length > 0);
       
-      if (!userRating) {
-        setUserRating(bookData.dbData.userRating || 0);
-      }
-      
-      if (user && bookData.dbData.reviews) {
+      if (user && bookData.dbData) {
         const userReview = bookData.dbData.reviews.find(
           review => review.user.id === user.id
         );
+        
+        console.log('User review:', userReview);
+        
+        // Find user's rating from userRatings array
+        const userRatingObj = bookData.dbData.userRatings.find(
+          rating => rating.user.id === user.id
+        );
+        console.log('User rating object:', userRatingObj);
+
         if (userReview) {
           setUserHasReview(true);
           setUserReviewData(userReview);
           setUserReview(userReview.text);
         }
+
+        if (userRatingObj) {
+          const rating = parseFloat(userRatingObj.score);
+          console.log('Setting user rating to:', rating);
+          setUserRating(rating);
+          setTempRating(rating);
+        } else {
+          setUserRating(0);
+          setTempRating(0);
+        }
       }
     } catch (err) {
+      console.error("Error fetching book details:", err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [id, API_BASE_URL, user, userRating]);
+  }, [id, API_BASE_URL, user]);
 
   useEffect(() => {
     fetchBookDetails();
@@ -77,35 +97,72 @@ function BookDetailPage() {
     }
   };
 
-  const handleStarClick = async (rating) => {
+  const handleStarClick = (rating) => {
     if (!isAuthenticated) {
       alert("You must be logged in to rate the book.");
       return;
     }
+    if (userHasReview && !isEditing) {
+      alert("You must be in edit mode to change your rating.");
+      return;
+    }
+    setTempRating(rating);
+  };
+
+  const handleClearRating = () => {
+    setTempRating(0);
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete your review and rating?")) {
+      return;
+    }
+
     try {
-      const method = userRating ? "PUT" : "POST";
-      const response = await fetch(`${API_BASE_URL}/books/${id}/rate`, {
-        method,
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ score: rating }),
-      });
-      
-      if (!response.ok) {
-        throw new Error("Failed to update rating");
+      // Delete rating
+      if (userRating) {
+        const ratingResponse = await fetch(`${API_BASE_URL}/books/${id}/rate`, {
+          method: "DELETE",
+          credentials: "include",
+        });
+        
+        if (!ratingResponse.ok) {
+          throw new Error("Failed to delete rating");
+        }
       }
+
+      // Delete review
+      if (userHasReview) {
+        const reviewResponse = await fetch(`${API_BASE_URL}/books/${id}/review`, {
+          method: "DELETE",
+          credentials: "include",
+        });
+        
+        if (!reviewResponse.ok) {
+          throw new Error("Failed to delete review");
+        }
+      }
+
+      // Reset all related states
+      setUserRating(0);
+      setTempRating(0);
+      setUserReview("");
+      setUserHasReview(false);
+      setUserReviewData(null);
       
-      setUserRating(rating);
+      // Ensure getting the latest data
+      await fetchBookDetails();
     } catch (err) {
+      console.error("Delete error:", err);
       alert(err.message);
     }
   };
 
-  const handleReviewSubmit = async (e) => {
+  const handleRateAndReviewSubmit = async (e) => {
     e.preventDefault();
     
     if (!isAuthenticated) {
-      alert("You must be logged in to submit a review.");
+      alert("You must be logged in to submit a rating and review.");
       return;
     }
 
@@ -114,10 +171,25 @@ function BookDetailPage() {
       return;
     }
 
+    if (!tempRating) {
+      alert("Please rate the book before submitting your review.");
+      return;
+    }
+
     try {
-      const method = userHasReview ? "PUT" : "POST";
+      // Update rating
+      const ratingMethod = userRating ? "PUT" : "POST";
+      await fetch(`${API_BASE_URL}/books/${id}/rate`, {
+        method: ratingMethod,
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ score: tempRating }),
+      });
+
+      // Update review
+      const reviewMethod = userHasReview ? "PUT" : "POST";
       const response = await fetch(`${API_BASE_URL}/books/${id}/review`, {
-        method,
+        method: reviewMethod,
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: userReview }),
@@ -129,10 +201,18 @@ function BookDetailPage() {
       }
 
       const data = await response.json();
+      
+      // Immediately update local state
       setUserHasReview(true);
       setUserReviewData(data);
+      setUserRating(tempRating);
       setIsEditing(false);
-      fetchBookDetails();
+      
+      // Wait a short time before fetching the latest data
+      setTimeout(() => {
+        fetchBookDetails();
+      }, 100);
+      
     } catch (err) {
       console.error(err);
       alert(err.message);
@@ -169,24 +249,31 @@ function BookDetailPage() {
           />
           {isAuthenticated && (
             <>
-              <div className="stars">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <span
-                    key={star}
-                    onClick={() => handleStarClick(star)}
-                    className={`star ${Number(star) <= Number(userRating) ? "filled" : ""}`}
-                  >
-                    ★
-                  </span>
-                ))}
-              </div>
               {userHasReview && !isEditing ? (
                 <div className="user-review">
                   <div className="review-header">
-                    <h3>Your Review</h3>
-                    <button onClick={() => setIsEditing(true)} className="edit-review-button">
-                      Edit Review
-                    </button>
+                    <h3>Your Rating & Review</h3>
+                    <div className="review-actions">
+                      <button onClick={() => setIsEditing(true)} className="edit-review-button">
+                        Edit Rating & Review
+                      </button>
+                      <button onClick={handleDelete} className="delete-review-button">
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                  <div className="stars">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <span
+                        key={star}
+                        onClick={() => handleStarClick(star)}
+                        className={`star ${
+                          Number(star) <= Number(tempRating) ? "filled" : ""
+                        }`}
+                      >
+                        ★
+                      </span>
+                    ))}
                   </div>
                   <p className="review-text">{userReview}</p>
                   <span className="review-dates">
@@ -196,7 +283,33 @@ function BookDetailPage() {
                   </span>
                 </div>
               ) : (
-                <form onSubmit={handleReviewSubmit} className="review-form">
+                <form onSubmit={handleRateAndReviewSubmit} className="review-form">
+                  <p>Rate this book</p>
+                  <div className="stars-container">
+                    <div className="stars">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <span
+                          key={star}
+                          onClick={() => handleStarClick(star)}
+                          className={`star ${
+                            Number(star) <= Number(tempRating) ? "filled" : ""
+                          }`}
+                        >
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                    {tempRating > 0 && (
+                      <button 
+                        type="button" 
+                        onClick={handleClearRating}
+                        className="clear-rating-button"
+                      >
+                        Clear Rating
+                      </button>
+                    )}
+                  </div>
+                  <p>Review this book</p>
                   <textarea
                     value={userReview}
                     onChange={(e) => setUserReview(e.target.value)}
@@ -205,7 +318,7 @@ function BookDetailPage() {
                   />
                   <div className="review-buttons">
                     <button type="submit" className="submit-review-button">
-                      {isEditing ? 'Save Changes' : 'Submit Review'}
+                      {isEditing ? 'Save Changes' : 'Submit Rating & Review'}
                     </button>
                     {isEditing && (
                       <button 
@@ -214,6 +327,7 @@ function BookDetailPage() {
                         onClick={() => {
                           setIsEditing(false);
                           setUserReview(userReviewData.text);
+                          setTempRating(userRating);
                         }}
                       >
                         Cancel
