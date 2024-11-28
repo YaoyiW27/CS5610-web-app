@@ -26,7 +26,7 @@ function requireAuth(req, res, next) {
   const token = req.cookies.token;
   console.log("Token:", token); 
   if (!token) {
-    return res.status(401).json({ error: "Unauthorized - Missing Token" });
+    return res.status(401).json({ error: "Please log in to continue" });
   }
 
   try {
@@ -36,16 +36,25 @@ function requireAuth(req, res, next) {
     next();
   } catch (err) {
     console.error("JWT Verification Error:", err);
-    return res.status(401).json({ error: "Unauthorized - Invalid Token" });
+    // Clear the invalid/expired token
+    res.clearCookie("token");
+    // Check if it's a token expiration error
+    if (err.name === "TokenExpiredError") {
+      return res.status(401).json({ error: "Session expired. Please log in again" });
+    }
+    return res.status(401).json({ error: "Invalid session. Please log in again" });
   }
 }
 
-// Public endpoints
+
+// ===== Public Health Check Endpoints =====
 app.get("/ping", (req, res) => {
   res.send("pong");
 });
 
-// Auth endpoints
+
+// ===== Authentication Endpoints =====
+// Register
 app.post("/register", async (req, res) => {
   const { email, password, displayName } = req.body;  
   try {
@@ -78,6 +87,7 @@ app.post("/register", async (req, res) => {
   }
 });
 
+// Login
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -108,11 +118,13 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// Logout
 app.post("/logout", (req, res) => {
   res.clearCookie("token");
   res.json({ message: "Logged out" });
 });
 
+// me
 app.get("/me", requireAuth, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
@@ -125,7 +137,9 @@ app.get("/me", requireAuth, async (req, res) => {
   }
 });
 
-// Book endpoints
+
+// ===== Book Search Endpoints =====
+// Get books by input query
 app.get("/books/search/:query", async (req, res) => {
   try {
     const query = encodeURIComponent(req.params.query);
@@ -147,116 +161,7 @@ app.get("/books/search/:query", async (req, res) => {
   }
 });
 
-// User's books endpoints
-app.get("/user/favorites", requireAuth, async (req, res) => {
-  try {
-    console.log("Finding favorites for user:", req.userId);
-    
-    const favorites = await prisma.userFavoriteBook.findMany({
-      where: { 
-        userId: req.userId
-      },
-      include: { 
-        book: true 
-      }
-    });
-
-    console.log("Found favorites:", favorites);
-
-    const booksWithDetails = await Promise.all(favorites.map(async (fav) => {
-      try {
-        const googleResponse = await fetch(
-          `https://www.googleapis.com/books/v1/volumes/${fav.book.googleBooksId}`
-        );
-        
-        const googleData = await googleResponse.json();
-        
-        return {
-          id: fav.book.googleBooksId,
-          volumeInfo: {
-            title: fav.book.name,
-            authors: [fav.book.author],
-            publishedDate: fav.book.releasedDate,
-            description: fav.book.description,
-            imageLinks: {
-              thumbnail: googleData.volumeInfo?.imageLinks?.thumbnail || null
-            }
-          },
-          cover: googleData.volumeInfo?.imageLinks?.thumbnail || null
-        };
-      } catch (error) {
-        console.error("Error fetching Google Books data:", error);
-        return {
-          id: fav.book.googleBooksId,
-          volumeInfo: {
-            title: fav.book.name,
-            authors: [fav.book.author],
-            publishedDate: fav.book.releasedDate,
-            description: fav.book.description,
-            imageLinks: { thumbnail: null }
-          },
-          cover: null
-        };
-      }
-    }));
-
-    res.json(booksWithDetails);
-  } catch (error) {
-    console.error("Server error in favorites:", error);
-    res.status(500).json({ 
-      error: "Failed to fetch favorites",
-      details: error.message
-    });
-  }
-});
-
-app.get("/books/user/reviews", requireAuth, async (req, res) => {
-  try {
-    const reviews = await prisma.review.findMany({
-      where: { userId: req.userId },
-      include: { book: true },
-    });
-
-    const formattedReviews = await Promise.all(reviews.map(async (review) => {
-      const { book } = review;
-      try {
-        const googleBooksUrl = `https://www.googleapis.com/books/v1/volumes/${book.googleBooksId}`;
-        
-        const googleResponse = await fetch(googleBooksUrl);
-        const googleData = await googleResponse.json();
-      
-
-        const formatted = {
-          id: book.googleBooksId,
-          volumeInfo: {
-            title: googleData.volumeInfo.title,
-            authors: googleData.volumeInfo.authors,
-            publishedDate: googleData.volumeInfo.publishedDate,
-            description: googleData.volumeInfo.description,
-            imageLinks: googleData.volumeInfo.imageLinks
-          },
-          cover: googleData.volumeInfo?.imageLinks?.thumbnail,
-          review: {
-            text: review.text,
-            createdAt: review.createdAt
-          }
-        };
-        
-        return formatted;
-      } catch (error) {
-        console.error(`Error fetching Google Books data for ${book.googleBooksId}:`, error);
-        return null;
-      }
-    }));
-
-    const filteredReviews = formattedReviews.filter(review => review !== null);
-    res.json(filteredReviews);
-  } catch (error) {
-    console.error("Error fetching user reviews:", error);
-    res.status(500).json({ error: "Failed to fetch user reviews" });
-  }
-});
-
+// Get book by googleBooksId
 app.get("/books/:id", async (req, res) => {
   try {
     const googleBooksId = req.params.id;
@@ -362,7 +267,122 @@ app.get("/books/:id", async (req, res) => {
   }
 });
 
-// Protected book endpoints
+
+// ===== User Book Collections Endpoints =====
+// User's favorited books
+app.get("/books/user/favorites", requireAuth, async (req, res) => {
+  try {
+    console.log("Finding favorites for user:", req.userId);
+    
+    const favorites = await prisma.userFavoriteBook.findMany({
+      where: { 
+        userId: req.userId
+      },
+      include: { 
+        book: true 
+      }
+    });
+
+    console.log("Found favorites:", favorites);
+
+    const booksWithDetails = await Promise.all(favorites.map(async (fav) => {
+      try {
+        const googleResponse = await fetch(
+          `https://www.googleapis.com/books/v1/volumes/${fav.book.googleBooksId}`
+        );
+        
+        const googleData = await googleResponse.json();
+        
+        return {
+          id: fav.book.googleBooksId,
+          volumeInfo: {
+            title: fav.book.name,
+            authors: [fav.book.author],
+            publishedDate: fav.book.releasedDate,
+            description: fav.book.description,
+            imageLinks: {
+              thumbnail: googleData.volumeInfo?.imageLinks?.thumbnail || null
+            }
+          },
+          cover: googleData.volumeInfo?.imageLinks?.thumbnail || null
+        };
+      } catch (error) {
+        console.error("Error fetching Google Books data:", error);
+        return {
+          id: fav.book.googleBooksId,
+          volumeInfo: {
+            title: fav.book.name,
+            authors: [fav.book.author],
+            publishedDate: fav.book.releasedDate,
+            description: fav.book.description,
+            imageLinks: { thumbnail: null }
+          },
+          cover: null
+        };
+      }
+    }));
+
+    res.json(booksWithDetails);
+  } catch (error) {
+    console.error("Server error in favorites:", error);
+    res.status(500).json({ 
+      error: "Failed to fetch favorites",
+      details: error.message
+    });
+  }
+});
+
+// User's reviewed books
+app.get("/books/user/reviews", requireAuth, async (req, res) => {
+  try {
+    const reviews = await prisma.review.findMany({
+      where: { userId: req.userId },
+      include: { book: true },
+    });
+
+    const formattedReviews = await Promise.all(reviews.map(async (review) => {
+      const { book } = review;
+      try {
+        const googleBooksUrl = `https://www.googleapis.com/books/v1/volumes/${book.googleBooksId}`;
+        
+        const googleResponse = await fetch(googleBooksUrl);
+        const googleData = await googleResponse.json();
+      
+
+        const formatted = {
+          id: book.googleBooksId,
+          volumeInfo: {
+            title: googleData.volumeInfo.title,
+            authors: googleData.volumeInfo.authors,
+            publishedDate: googleData.volumeInfo.publishedDate,
+            description: googleData.volumeInfo.description,
+            imageLinks: googleData.volumeInfo.imageLinks
+          },
+          cover: googleData.volumeInfo?.imageLinks?.thumbnail,
+          review: {
+            text: review.text,
+            createdAt: review.createdAt
+          }
+        };
+        
+        return formatted;
+      } catch (error) {
+        console.error(`Error fetching Google Books data for ${book.googleBooksId}:`, error);
+        return null;
+      }
+    }));
+
+    const filteredReviews = formattedReviews.filter(review => review !== null);
+    res.json(filteredReviews);
+  } catch (error) {
+    console.error("Error fetching user reviews:", error);
+    res.status(500).json({ error: "Failed to fetch user reviews" });
+  }
+});
+
+
+// ===== Book Interaction Endpoints =====
+// Post favorite
 app.post("/books/:id/favorite", requireAuth, async (req, res) => {
   try {
     const googleBooksId = req.params.id;
@@ -395,30 +415,68 @@ app.post("/books/:id/favorite", requireAuth, async (req, res) => {
     });
 
     if (existingFavorite) {
-      await prisma.userFavoriteBook.delete({
-        where: {
-          userId_bookId: {
-            userId: req.userId,
-            bookId: book.id,
-          },
-        },
-      });
-      return res.json({ message: "Removed from favorites" });
-    } else {
-      const favorite = await prisma.userFavoriteBook.create({
-        data: {
-          userId: req.userId,
-          bookId: book.id,
-        },
-      });
-      return res.json(favorite);
+      return res.status(400).json({ error: "Book already in favorites" });
     }
+
+    const favorite = await prisma.userFavoriteBook.create({
+      data: {
+        userId: req.userId,
+        bookId: book.id,
+      },
+    });
+    return res.json(favorite);
   } catch (error) {
-    console.error("Error favoriting book:", error);
-    res.status(500).json({ error: "Failed to favorite book" });
+    console.error("Error adding favorite:", error);
+    res.status(500).json({ error: "Failed to add favorite" });
   }
 });
 
+// Delete favorite
+app.delete("/books/:id/favorite", requireAuth, async (req, res) => {
+  try {
+    const googleBooksId = req.params.id;
+
+    if (!googleBooksId) {
+      return res.status(400).json({ error: "Invalid Book ID" });
+    }
+
+    const book = await prisma.book.findUnique({
+      where: { googleBooksId },
+    });
+
+    if (!book) {
+      return res.status(404).json({ error: "Book not found" });
+    }
+
+    const existingFavorite = await prisma.userFavoriteBook.findUnique({
+      where: {
+        userId_bookId: {
+          userId: req.userId,
+          bookId: book.id,
+        },
+      },
+    });
+
+    if (!existingFavorite) {
+      return res.status(404).json({ error: "Favorite not found" });
+    }
+
+    await prisma.userFavoriteBook.delete({
+      where: {
+        userId_bookId: {
+          userId: req.userId,
+          bookId: book.id,
+        },
+      },
+    });
+    return res.json({ message: "Removed from favorites" });
+  } catch (error) {
+    console.error("Error removing favorite:", error);
+    res.status(500).json({ error: "Failed to remove favorite" });
+  }
+});
+
+// Post rate
 app.post("/books/:id/rate", requireAuth, async (req, res) => {
   try {
     const googleBooksId = req.params.id;
@@ -462,6 +520,7 @@ app.post("/books/:id/rate", requireAuth, async (req, res) => {
   }
 });
 
+// Put rate
 app.put("/books/:id/rate", requireAuth, async (req, res) => {
   try {
     const googleBooksId = req.params.id;
@@ -499,6 +558,7 @@ app.put("/books/:id/rate", requireAuth, async (req, res) => {
   }
 });
 
+// Post review
 app.post("/books/:id/review", requireAuth, async (req, res) => {
   try {
     const googleBooksId = req.params.id;
@@ -557,6 +617,7 @@ app.post("/books/:id/review", requireAuth, async (req, res) => {
   }
 });
 
+// Put review
 app.put("/books/:id/review", requireAuth, async (req, res) => {
   try {
     const googleBooksId = req.params.id;
@@ -609,6 +670,7 @@ app.put("/books/:id/review", requireAuth, async (req, res) => {
   }
 });
 
+// Delete review
 app.delete("/books/:id/review", requireAuth, async (req, res) => {
   try {
     const googleBooksId = req.params.id;

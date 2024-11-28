@@ -25,7 +25,7 @@ function MyBooks() {
 
       try {
         const [favResponse, reviewResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/user/favorites`, { credentials: "include" }),
+          fetch(`${API_BASE_URL}/books/user/favorites`, { credentials: "include" }),
           fetch(`${API_BASE_URL}/books/user/reviews`, { credentials: "include" })
         ]);
 

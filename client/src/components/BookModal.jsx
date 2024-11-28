@@ -23,10 +23,12 @@ const BookModal = ({ book, onClose, isOpen }) => {
       title = 'Unknown Title',
       authors = ['Unknown Author'],
       description = 'No description available',
-      averageRating = 0,
-      ratingsCount = 0,
       publishedDate = 'Unknown Date',
   } = book.volumeInfo || book;
+
+  // Use dbData for averageRating and ratingsCount
+  const averageRating = book.dbData?.averageRating || 0;
+  const ratingsCount = book.dbData?.userRatings?.length || 0;
 
   // use DOMPurify to sanitize the description
   const sanitizedDescription = DOMPurify.sanitize(description);
