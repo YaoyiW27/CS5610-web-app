@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import BookList from '../components/BookList';
 import { useAuthUser } from '../security/AuthContext';
-import ReviewedBookList from '../components/ReviewedBookList';
+import RatedReviewedBookList from '../components/RatedReviewedBookList';
 import '../style/MyBooks.css';
 
 function MyBooks() {
   const [activeTab, setActiveTab] = useState('favorites');
   const [favoriteBooks, setFavoriteBooks] = useState([]);
-  const [reviewedBooks, setReviewedBooks] = useState([]);
+  const [ratedReviewedBooks, setRatedReviewedBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { isAuthenticated } = useAuthUser();
@@ -24,9 +24,10 @@ function MyBooks() {
       }
 
       try {
-        const [favResponse, reviewResponse] = await Promise.all([
+        const [favResponse, reviewResponse, ratingResponse] = await Promise.all([
           fetch(`${API_BASE_URL}/books/user/favorites`, { credentials: "include" }),
-          fetch(`${API_BASE_URL}/books/user/reviews`, { credentials: "include" })
+          fetch(`${API_BASE_URL}/books/user/reviews`, { credentials: "include" }),
+          fetch(`${API_BASE_URL}/books/user/ratings`, { credentials: "include" })
         ]);
 
         if (!favResponse.ok) {
@@ -35,13 +36,25 @@ function MyBooks() {
         if (!reviewResponse.ok) {
           throw new Error(`Failed to fetch reviews: ${reviewResponse.statusText}`);
         }
+        if (!ratingResponse.ok) {
+          throw new Error(`Failed to fetch ratings: ${ratingResponse.statusText}`);
+        }
 
         const favorites = await favResponse.json();
         const reviews = await reviewResponse.json();
+        const ratings = await ratingResponse.json();
+
+        const reviewsWithRatings = reviews.map(review => {
+          const rating = ratings.find(r => r.id === review.id);
+          return {
+            ...review,
+            rating: rating ? rating.rating : { score: 0 }
+          };
+        });
 
         if (isMounted) {
           setFavoriteBooks(favorites);
-          setReviewedBooks(reviews);
+          setRatedReviewedBooks(reviewsWithRatings);
           setLoading(false);
         }
       } catch (err) {
@@ -61,7 +74,7 @@ function MyBooks() {
   }, [isAuthenticated, API_BASE_URL]);
 
   const handleDeleteReview = (bookId) => {
-    setReviewedBooks(prevBooks => prevBooks.filter(book => book.id !== bookId));
+    setRatedReviewedBooks(prevBooks => prevBooks.filter(book => book.id !== bookId));
   };
 
   if (!isAuthenticated) {
@@ -84,10 +97,10 @@ function MyBooks() {
               Favorites ({favoriteBooks?.length || 0})
             </button>
             <button
-              className={`tab-button ${activeTab === 'reviewed' ? 'active' : ''}`}
-              onClick={() => setActiveTab('reviewed')}
+              className={`tab-button ${activeTab === 'rated-reviewed' ? 'active' : ''}`}
+              onClick={() => setActiveTab('rated-reviewed')}
             >
-              Reviews ({reviewedBooks?.length || 0})
+              Ratings & Reviews ({ratedReviewedBooks?.length || 0})
             </button>
           </div>
   
@@ -101,15 +114,15 @@ function MyBooks() {
                 <div className="empty-state">No favorite books yet</div>
               )
             ) : (
-              reviewedBooks?.length > 0 ? (
-                <div className="reviewed-books-list">
-                  <ReviewedBookList 
-                    books={reviewedBooks} 
+              ratedReviewedBooks?.length > 0 ? (
+                <div className="rated-reviewed-books-list">
+                  <RatedReviewedBookList 
+                    books={ratedReviewedBooks} 
                     onDeleteReview={handleDeleteReview}
                   />
                 </div>
               ) : (
-                <div className="empty-state">No reviewed books yet</div>
+                <div className="empty-state">No rated & reviewed books yet</div>
               )
             )}
           </div>

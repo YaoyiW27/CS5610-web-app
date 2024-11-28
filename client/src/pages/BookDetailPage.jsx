@@ -29,7 +29,14 @@ function BookDetailPage() {
       console.log('Fetched book data:', bookData);
 
       setBook(bookData);
-      setIsFavorite(bookData.dbData.userFavorites?.length > 0);
+      if (user && bookData.dbData && bookData.dbData.userFavorites) {
+        const currentUserFavorite = bookData.dbData.userFavorites.some(
+          favorite => favorite.userId === user.id
+        );
+        setIsFavorite(currentUserFavorite);
+      } else {
+        setIsFavorite(false);
+      }
       
       if (user && bookData.dbData) {
         const userReview = bookData.dbData.reviews.find(
@@ -339,19 +346,38 @@ function BookDetailPage() {
             </>
           )}
           <div className="community-reviews">
-            <h2>Community Reviews</h2>
+            <h2>Community Ratings & Reviews</h2>
             {book.dbData.reviews.length > 0 ? (
-              book.dbData.reviews.map((review) => (
-                <div key={review.id} className="review-item">
-                  <div className="review-header">
-                    <span className="reviewer-name">{review.user.displayName}</span>
-                    <span className="review-date">{new Date(review.createdAt).toLocaleDateString()}</span>
+              book.dbData.reviews.map((review) => {
+                // Find matching rating for this review's user
+                const userRating = book.dbData.userRatings.find(
+                  rating => rating.user.id === review.user.id
+                );
+                
+                return (
+                  <div key={review.id} className="review-item">
+                    <div className="review-header">
+                      <span className="reviewer-name">{review.user.displayName}</span>
+                      <span className="review-date">{new Date(review.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    {userRating && (
+                      <div className="stars">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span
+                            key={star}
+                            className={`star ${Number(star) <= Number(userRating.score) ? "filled" : ""}`}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <p className="review-text">{review.text}</p>
                   </div>
-                  <p className="review-text">{review.text}</p>
-                </div>
-              ))
+                );
+              })
             ) : (
-              <div className="no-reviews">No reviews yet. Be the first to leave one!</div>
+              <div className="no-reviews">No ratings & reviews yet. Be the first to leave one!</div>
             )}
           </div>
         </div>

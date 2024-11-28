@@ -105,7 +105,7 @@
 }
 
 .star.filled {
-  color: gold;
+  color: #ffd700;
 }
 
 .review-form {
@@ -240,4 +240,17 @@
   display: flex;
   gap: 10px;
   margin-top: 10px;
+}
+
+.review-item .stars {
+  margin: 5px 0;
+  font-size: 1.1em;
+}
+
+.review-item .star {
+  color: #ddd;  /* unfilled star color */
+}
+
+.review-item .star.filled {
+  color: #ffd700;  /* filled star color */
 }

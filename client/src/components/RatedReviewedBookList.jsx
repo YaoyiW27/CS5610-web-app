@@ -1,12 +1,12 @@
 import React from 'react';
-import ReviewedBookCard from './ReviewedBookCard';
+import RatedReviewedBookCard from './RatedReviewedBookCard';
 import '../style/MyBooks.css';
 
-const ReviewedBookList = ({ books, onDeleteReview }) => {
+const RatedReviewedBookList = ({ books, onDeleteReview }) => {
   return (
     <div className="reviewed-books-list">
       {books.map((book) => (
-        <ReviewedBookCard 
+        <RatedReviewedBookCard  
           key={book.id} 
           book={book}
           onDeleteReview={onDeleteReview}
@@ -16,4 +16,4 @@ const ReviewedBookList = ({ books, onDeleteReview }) => {
   );
 };
 
-export default ReviewedBookList;
+export default RatedReviewedBookList;
