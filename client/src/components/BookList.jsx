@@ -4,7 +4,7 @@ import '../style/MyBooks.css';
 
 const BookList = ({ books = [] }) => {
   return (
-    <div className="favorites-grid"> 
+    <div className="list"> 
       {books.map((book, index) => {
         const uniqueKey = book?.id || book?.googleBooksId || `book-${index}`;
         const processedBook = {

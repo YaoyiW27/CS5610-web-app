@@ -32,8 +32,7 @@
 }
 
 /* Book Grid Layout */
-.favorites-grid,
-.rated-reviewed-books-list {
+.horizontal-books-grid {
   display: flex;
   flex-wrap: nowrap;
   gap: 20px;
@@ -55,6 +54,8 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease;
   width: 180px;
+  min-width: 180px;
+  flex: 0 0 auto;
 }
 
 .card-container:hover {
@@ -88,57 +89,6 @@
   margin: 5px 0;
 }
 
-.desc p {
-  font-size: 12px;
-  color: #999999;
-}
-
-/* Review Specific Styles */
-.rated-reviewed-books-list .review-content {
-  padding: 10px;
-  margin: 10px 0;
-  background-color: #f8f9fa;
-  text-align: center;
-}
-
-.rated-reviewed-books-list .review-content h4 {
-  font-size: 14px;
-  font-weight: bold;
-  color: #333333;
-  margin-bottom: 10px;
-}
-
-.rated-reviewed-books-list .review-content p {
-  font-size: 12px;
-  color: #666666;
-}
-
-.rated-reviewed-books-list .review-content .review-date {
-  font-size: 12px;
-  color: #999999;
-  margin-top: 10px;
-}
-
-.rated-reviewed-books-list .delete-button {
-  margin-top: 10px;
-  padding: 8px 16px;
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.rated-reviewed-books-list .delete-button:hover {
-  background-color: #c82333;
-}
-
-.rated-reviewed-books-list .delete-button:disabled {
-  background-color: #6c757d;
-  cursor: not-allowed;
-}
-
 /* Star Rating Component */
 .stars-container {
   display: flex;
@@ -154,6 +104,27 @@
 
 .star.filled {
   color: #ffd700;
+}
+
+/* Delete Button */
+.delete-button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.delete-button:hover {
+  background-color: #c82333;
+}
+
+.delete-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
 }
 
 /* Utility States */
@@ -172,18 +143,33 @@
 }
 
 /* Scrollbar Styling */
-.favorites-grid::-webkit-scrollbar,
-.rated-reviewed-books-list::-webkit-scrollbar {
+.horizontal-books-grid::-webkit-scrollbar {
   height: 8px;
 }
 
-.favorites-grid::-webkit-scrollbar-thumb,
-.rated-reviewed-books-list::-webkit-scrollbar-thumb {
+.horizontal-books-grid::-webkit-scrollbar-thumb {
   background-color: #cccccc;
   border-radius: 4px;
 }
 
-.favorites-grid::-webkit-scrollbar-track,
-.rated-reviewed-books-list::-webkit-scrollbar-track {
+.horizontal-books-grid::-webkit-scrollbar-track {
   background-color: #f8f9fa;
+}
+
+/* 增加选择器特异性 */
+.my-books-tabs .horizontal-books-grid {
+  display: flex !important; /* 使用 !important 确保覆盖其他样式 */
+  flex-wrap: nowrap;
+  gap: 20px;
+  padding: 20px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cccccc #f8f9fa;
+}
+
+/* 确保卡片样式也正确应用 */
+.my-books-tabs .horizontal-books-grid .card-container {
+  width: 180px;
+  min-width: 180px;
+  flex: 0 0 auto;
 }

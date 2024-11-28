@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import BookList from '../components/BookList';
 import { useAuthUser } from '../security/AuthContext';
 import RatedReviewedBookList from '../components/RatedReviewedBookList';
+import LikedBookList from '../components/LikedBookList';
 import '../style/MyBooks.css';
 
 function MyBooks() {
@@ -77,6 +77,10 @@ function MyBooks() {
     setRatedReviewedBooks(prevBooks => prevBooks.filter(book => book.id !== bookId));
   };
 
+  const handleDeleteFavorite = (bookId) => {
+    setFavoriteBooks(prevBooks => prevBooks.filter(book => book.id !== bookId));
+  };
+
   if (!isAuthenticated) {
     return <div className="main-container">Please login to view your books.</div>;
   }
@@ -107,20 +111,19 @@ function MyBooks() {
           <div className="tabs-content">
             {activeTab === 'favorites' ? (
               favoriteBooks?.length > 0 ? (
-                <div className="favorites-grid">
-                  <BookList books={favoriteBooks} />
-                </div>
+                <LikedBookList 
+                  books={favoriteBooks} 
+                  onDeleteFavorite={handleDeleteFavorite}
+                />
               ) : (
                 <div className="empty-state">No favorite books yet</div>
               )
             ) : (
               ratedReviewedBooks?.length > 0 ? (
-                <div className="rated-reviewed-books-list">
-                  <RatedReviewedBookList 
-                    books={ratedReviewedBooks} 
-                    onDeleteReview={handleDeleteReview}
-                  />
-                </div>
+                <RatedReviewedBookList 
+                  books={ratedReviewedBooks} 
+                  onDeleteReview={handleDeleteReview}
+                />
               ) : (
                 <div className="empty-state">No rated & reviewed books yet</div>
               )
