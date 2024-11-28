@@ -1,6 +1,4 @@
-.books-container .list,
-.favorites-grid,
-.reviewed-books-list {
+.books-container .list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 20px;
@@ -19,17 +17,13 @@
 }
 
 @media (min-width: 1200px) {
-  .books-container .list,
-  .favorites-grid,
-  .reviewed-books-list {
+  .books-container .list {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   }
 }
 
 @media (max-width: 768px) {
-  .books-container .list,
-  .favorites-grid,
-  .reviewed-books-list {
+  .books-container .list {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 15px;
     padding: 15px;
@@ -37,9 +31,7 @@
 }
 
 @media (max-width: 480px) {
-  .books-container .list,
-  .favorites-grid,
-  .reviewed-books-list {
+  .books-container .list {
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: 10px;
     padding: 10px;
