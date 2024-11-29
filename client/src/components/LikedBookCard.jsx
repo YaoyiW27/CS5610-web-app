@@ -34,6 +34,8 @@ const LikedBookCard = ({ book, onDeleteFavorite }) => {
         }
     };
 
+    console.log(book.volumeInfo.imageLinks);
+    
     return (
         <>
             <div className="card-container" onClick={() => setIsModalOpen(true)}>

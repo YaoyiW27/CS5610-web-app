@@ -10,7 +10,7 @@
 .main-container,
 .search-layout,
 .content-area {
-  padding-top: 80px; /* 60px navbar height + 20px extra padding */
+  padding-top: 65px; /* 60px navbar height + 5px small padding */
   min-height: calc(100vh - 60px);
   width: 100%;
   box-sizing: border-box;

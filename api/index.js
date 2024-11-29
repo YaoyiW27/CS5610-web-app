@@ -154,6 +154,8 @@ app.get("/books/search/:query", async (req, res) => {
     }
 
     const data = await response.json();
+    
+    // Return Google Books API results directly, without querying the database
     res.json(data);
   } catch (err) {
     console.error("Search error:", err);

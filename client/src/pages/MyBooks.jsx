@@ -82,14 +82,14 @@ function MyBooks() {
   };
 
   if (!isAuthenticated) {
-    return <div className="main-container">Please login to view your books.</div>;
+    return <div className="main-container my-books-page">Please login to view your books.</div>;
   }
 
   if (loading) return <div className="loading">Loading your books...</div>;
   if (error) return <div className="error">{error}</div>;
 
   return (
-    <div className="main-container">
+    <div className="main-container my-books-page">
       <div className="content-area">
         <h1>My Books</h1>
         <div className="my-books-tabs">

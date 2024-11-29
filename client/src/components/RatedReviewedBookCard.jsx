@@ -15,7 +15,7 @@ const RatedReviewedBookCard = ({ book, onDeleteReview }) => {
         if (window.confirm('Are you sure you want to delete this rating and review?')) {
             setIsDeleting(true);
             try {
-                // 并行发送两个删除请求
+                // Send two delete requests in parallel
                 await Promise.all([
                     fetch(`${API_BASE_URL}/books/${book.id}/review`, {
                         method: 'DELETE',
@@ -48,6 +48,8 @@ const RatedReviewedBookCard = ({ book, onDeleteReview }) => {
         ));
     };
 
+    console.log(book.volumeInfo.imageLinks);
+    
     return (
         <>
             <div className="card-container" onClick={() => setIsModalOpen(true)}>
