@@ -4,7 +4,7 @@ import '../style/MyBooks.css';
 
 const RatedReviewedBookList = ({ books, onDeleteReview }) => {
   return (
-    <div className="horizontal-books-grid">
+    <div className="books-grid">
       {books.map((book) => (
         <RatedReviewedBookCard  
           key={book.id} 

@@ -4,7 +4,7 @@ import '../style/MyBooks.css';
 
 const LikedBookList = ({ books, onDeleteFavorite }) => {
   return (
-    <div className="horizontal-books-grid">
+    <div className="books-grid">
       {books.map((book) => (
         <LikedBookCard
           key={book.id}

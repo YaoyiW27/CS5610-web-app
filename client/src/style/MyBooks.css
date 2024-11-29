@@ -1,8 +1,16 @@
-/* Tab Navigation */
-.my-books-tabs {
-  margin-top: 20px;
+/* Basic page styles */
+.my-books-page .content-area {
+  padding-top: 60px !important; /* Only keep navigation bar height */
+  min-height: auto !important;
 }
 
+/* Adjust spacing between title and tabs */
+.my-books-page h1 {
+  margin-top: 5px;
+  margin-bottom: 20px;
+}
+
+/* Tab Navigation */
 .tabs-header {
   display: flex;
   border-bottom: 2px solid #eeeeee;
@@ -32,78 +40,35 @@
 }
 
 /* Book Grid Layout */
-.horizontal-books-grid {
-  display: flex;
-  flex-wrap: nowrap;
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 20px;
   padding: 20px;
-  overflow-x: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #cccccc #f8f9fa;
-}
-
-/* Book Card Base Styles */
-.card-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: #ffffff;
-  border: 1px solid #dddddd;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease;
-  width: 180px;
-  min-width: 180px;
-  flex: 0 0 auto;
-}
-
-.card-container:hover {
-  transform: scale(1.05);
-}
-
-/* Book Card Content */
-.book-cover {
   width: 100%;
-  height: 240px;
-  object-fit: cover;
-  border-bottom: 1px solid #dddddd;
+  box-sizing: border-box;
 }
 
-.desc {
-  padding: 15px;
-  text-align: center;
+@media (min-width: 1200px) {
+  .books-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
 }
 
-.desc h2 {
-  font-size: 16px;
-  font-weight: bold;
-  color: #333333;
-  margin: 5px 0;
+@media (max-width: 768px) {
+  .books-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    padding: 15px;
+  }
 }
 
-.desc h3 {
-  font-size: 14px;
-  font-weight: normal;
-  color: #666666;
-  margin: 5px 0;
-}
-
-/* Star Rating Component */
-.stars-container {
-  display: flex;
-  align-items: center;
-  margin: 8px 0;
-}
-
-.star {
-  font-size: 20px;
-  cursor: default;
-  color: #e4e5e9;
-}
-
-.star.filled {
-  color: #ffd700;
+@media (max-width: 480px) {
+  .books-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+    padding: 10px;
+  }
 }
 
 /* Delete Button */
@@ -140,36 +105,4 @@
   font-size: 16px;
   color: #666666;
   margin-top: 20px;
-}
-
-/* Scrollbar Styling */
-.horizontal-books-grid::-webkit-scrollbar {
-  height: 8px;
-}
-
-.horizontal-books-grid::-webkit-scrollbar-thumb {
-  background-color: #cccccc;
-  border-radius: 4px;
-}
-
-.horizontal-books-grid::-webkit-scrollbar-track {
-  background-color: #f8f9fa;
-}
-
-/* 增加选择器特异性 */
-.my-books-tabs .horizontal-books-grid {
-  display: flex !important; /* 使用 !important 确保覆盖其他样式 */
-  flex-wrap: nowrap;
-  gap: 20px;
-  padding: 20px;
-  overflow-x: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #cccccc #f8f9fa;
-}
-
-/* 确保卡片样式也正确应用 */
-.my-books-tabs .horizontal-books-grid .card-container {
-  width: 180px;
-  min-width: 180px;
-  flex: 0 0 auto;
 }

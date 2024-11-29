@@ -1,37 +1,74 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DOMPurify from 'dompurify';
 import '../style/Modal.css'; 
 
 const BookModal = ({ book, onClose, isOpen }) => {
   const navigate = useNavigate();
+  const [bookDetails, setBookDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
   const DEFAULT_IMAGE = 'https://books.google.com/books/content?id=no_cover&printsec=frontcover&img=1&zoom=1&source=gbs_api';
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 
-  if (!isOpen || !book) return null;
-
-  const bookId = book.id; 
-  
   const getCoverImage = () => {
-      const url = book?.volumeInfo?.imageLinks?.thumbnail || 
-                 book?.volumeInfo?.imageLinks?.smallThumbnail || 
-                 book?.cover || 
-                 DEFAULT_IMAGE;
-      return url.replace('http://', 'https://');
+    const displayData = bookDetails || book;
+    const url = displayData?.volumeInfo?.imageLinks?.thumbnail || 
+                displayData?.volumeInfo?.imageLinks?.smallThumbnail || 
+                displayData?.cover || 
+                DEFAULT_IMAGE;
+    return url.replace('http://', 'https://');
   };
 
-  const {
-      title = 'Unknown Title',
-      authors = ['Unknown Author'],
-      description = 'No description available',
-      publishedDate = 'Unknown Date',
-  } = book.volumeInfo || book;
+  useEffect(() => {
+    const fetchBookDetails = async () => {
+      if (!book?.id) return;
+      
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_BASE_URL}/books/${book.id}`, {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) throw new Error('Failed to fetch book details');
+        const data = await response.json();
+        console.log('Modal book details:', data);
+        setBookDetails(data);
+      } catch (err) {
+        console.error('Error fetching book details:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Use dbData for averageRating and ratingsCount
-  const averageRating = book.dbData?.averageRating || 0;
-  const ratingsCount = book.dbData?.userRatings?.length || 0;
+    if (isOpen && book) {
+      fetchBookDetails();
+    }
+  }, [isOpen, book, API_BASE_URL]);
+
+  if (!isOpen || !book) return null;
+  if (loading) return <div className="modal-overlay"><div className="modal-content">Loading...</div></div>;
+
+  const bookId = book.id;
+  
+  // Use detailed data or fallback to search result data
+  const displayData = bookDetails || book;
+  const {
+    title = 'Unknown Title',
+    authors = ['Unknown Author'],
+    description = 'No description available',
+    publishedDate = 'Unknown Date',
+  } = displayData.volumeInfo || displayData;
+
+  // Use detailed rating data
+  const averageRating = bookDetails?.dbData?.averageRating || 0;
+  const ratingsCount = bookDetails?.dbData?.userRatings?.length || 0;
 
   // use DOMPurify to sanitize the description
   const sanitizedDescription = DOMPurify.sanitize(description);
+
+  console.log('Book data in modal:', book);
+  console.log('Average rating:', averageRating);
+  console.log('Ratings count:', ratingsCount);
 
   const renderStars = () => {
     const stars = [];
@@ -66,6 +103,22 @@ const BookModal = ({ book, onClose, isOpen }) => {
     navigate(`/book/${bookId}`); // navigate to the book details page
   };
 
+  // Only show rating when detailed data is available
+  const renderRating = () => {
+    if (!bookDetails) return null;
+    
+    return (
+      <div className="modal-rating">
+        <div className="stars">{renderStars()}</div>
+        <span className="rating-text">
+          {averageRating?.toFixed(2) || 'No'} avg rating —{' '}
+          {ratingsCount || 0} ratings
+          {publishedDate && ` — published ${publishedDate.substring(0, 4)}`}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -91,14 +144,7 @@ const BookModal = ({ book, onClose, isOpen }) => {
             by {Array.isArray(authors) ? authors.join(', ') : authors}
           </p>
         </div>
-        <div className="modal-rating">
-          <div className="stars">{renderStars()}</div>
-          <span className="rating-text">
-            {averageRating?.toFixed(2) || 'No'} avg rating —{' '}
-            {ratingsCount || 0} ratings
-            {publishedDate && ` — published ${publishedDate.substring(0, 4)}`}
-          </span>
-        </div>
+        {renderRating()}
         {/* use dangerouslySetInnerHTML */}
         <div
           className="modal-description"
