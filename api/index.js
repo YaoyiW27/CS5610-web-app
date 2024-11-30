@@ -11,12 +11,12 @@ import path from "path";
 import serverless from "serverless-http";
 
 const app = express();
-// const PORT = process.env.PORT || 3001; // 移除 PORT 变量
+// const PORT = process.env.PORT || 3001; // remove PORT for Vercel deployment
 const GOOGLE_BOOKS_API_KEY = process.env.GOOGLE_BOOKS_API_KEY;
 
 app.use(cors({ 
   origin: process.env.NODE_ENV === 'production' 
-    ? 'https://cs5610-web-app.vercel.app'
+    ? ['https://cs5610-web-app.vercel.app', 'https://cs5610-web-app-git-main-your-username.vercel.app']
     : 'http://localhost:3000',
   credentials: true 
 }));
