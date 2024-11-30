@@ -12,7 +12,12 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const GOOGLE_BOOKS_API_KEY = process.env.GOOGLE_BOOKS_API_KEY;
 
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(cors({ 
+  origin: process.env.NODE_ENV === 'production' 
+    ? 'https://your-domain.vercel.app'
+    : 'http://localhost:3000',
+  credentials: true 
+}));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(morgan("dev"));
@@ -781,6 +786,13 @@ app.delete("/books/:id/review", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Failed to delete review" });
   }
 });
+
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../client/build')));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+  });
+}
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT} 🎉 🚀`);
