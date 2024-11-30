@@ -1,8 +1,13 @@
 # CS 5610 Final Project: Bookly 📚
 [Demo Video](https://www.youtube.com/watch?v=uZTijQpb6hA)
 
-[Link](update here)
+### Team Members:
+- [Weiwei Zhang](https://github.com/weiwz01)
+- [Yaoyi Wang](https://github.com/YaoyiW27)
+
 <img src="./client/src/assets/bookly.png">
+
+##
 
 [![forthebadge](https://forthebadge.com/images/badges/uses-html.svg)](https://forthebadge.com) &nbsp;
 [![forthebadge](https://forthebadge.com/images/badges/uses-css.svg)](https://forthebadge.com) &nbsp;
@@ -10,12 +15,9 @@
 [![forthebadge](https://forthebadge.com/images/badges/made-with-react.svg)](https://forthebadge.com)
 [![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](https://forthebadge.com) &nbsp;
 
-### Team Members:
-- [Weiwei Zhang](https://github.com/weiwz01)
-- [Yaoyi Wang](https://github.com/YaoyiW27)
 
 ## Project Description
-This is an online book community platform where users can browse, search, and bookmark various books while engaging in discussions through comments. The website offers a rich categorization of books including Literature & Fiction, Sci-Fi & Fantasy, Art & Design, Science & Technology, History & Biography, and more, making it easy for users to discover books of their interest.
+Powered by the Google Books API, Bookly is an online book community platform where users can browse, search for, and bookmark various books while engaging in discussions through comments. The website offers a rich categorization of books, including Literature & Fiction, Sci-Fi & Fantasy, Art & Design, Science & Technology, History & Biography, and more, making it easy for users to discover books of interest.
 
 ## Features
 - User authentication (register/login)
