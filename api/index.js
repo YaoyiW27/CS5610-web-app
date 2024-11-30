@@ -8,9 +8,10 @@ import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import bcrypt from "bcrypt";
 import path from "path";
+import serverless from "serverless-http";
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+// const PORT = process.env.PORT || 3001; // 移除 PORT 变量
 const GOOGLE_BOOKS_API_KEY = process.env.GOOGLE_BOOKS_API_KEY;
 
 app.use(cors({ 
@@ -798,15 +799,10 @@ app.delete("/books/:id/review", requireAuth, async (req, res) => {
   }
 });
 
-if (process.env.NODE_ENV === 'production') {
-  // app.use(express.static(path.join(__dirname, '../client/build')));
-  // app.get('*', (req, res) => {
-  //   res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
-  // });
-}
+// app.listen(PORT, () => {
+//   console.log(`Server running on http://localhost:${PORT} 🎉 🚀`);
+//   console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+//   console.log("Google Books API Key:", GOOGLE_BOOKS_API_KEY ? "Present" : "Missing");
+// });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT} 🎉 🚀`);
-  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log("Google Books API Key:", GOOGLE_BOOKS_API_KEY ? "Present" : "Missing");
-});
+export const handler = serverless(app);
