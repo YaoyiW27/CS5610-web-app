@@ -26,7 +26,7 @@ const BookCard = ({ book }) => {
           src={getImageUrl()}
           alt={book?.volumeInfo?.title || 'Book cover'}
           onError={(e) => {
-            console.error(`Failed to load image for book:`, book);
+            alert(`Failed to load image for book: ${book?.volumeInfo?.title || 'Unknown Title'}`);
             setImageError(true);
             e.target.src = DEFAULT_IMAGE;
           }}

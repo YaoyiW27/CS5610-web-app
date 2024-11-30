@@ -24,7 +24,7 @@ const prisma = new PrismaClient();
 // Auth middleware
 function requireAuth(req, res, next) {
   const token = req.cookies.token;
-  console.log("Token:", token); 
+
   if (!token) {
     return res.status(401).json({ error: "Please log in to continue" });
   }
@@ -32,7 +32,6 @@ function requireAuth(req, res, next) {
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     req.userId = payload.userId;
-    console.log("Authenticated User ID:", req.userId); 
     next();
   } catch (err) {
     console.error("JWT Verification Error:", err);
@@ -143,7 +142,6 @@ app.get("/me", requireAuth, async (req, res) => {
 app.get("/books/search/:query", async (req, res) => {
   try {
     const query = encodeURIComponent(req.params.query);
-    console.log("Searching for:", query); 
 
     const response = await fetch(
       `https://www.googleapis.com/books/v1/volumes?q=${query}&maxResults=20&key=${GOOGLE_BOOKS_API_KEY}`
@@ -288,8 +286,6 @@ app.get("/books/user/favorites", requireAuth, async (req, res) => {
         book: true 
       }
     });
-
-    console.log("Found favorites:", favorites);
 
     const booksWithDetails = await Promise.all(favorites.map(async (fav) => {
       try {

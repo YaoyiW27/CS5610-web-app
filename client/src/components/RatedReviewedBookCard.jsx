@@ -29,8 +29,7 @@ const RatedReviewedBookCard = ({ book, onDeleteReview }) => {
 
                 onDeleteReview(book.id);
             } catch (error) {
-                console.error('Error deleting:', error);
-                alert('Failed to delete rating and review');
+                alert('Failed to delete rating and review: ' + error.message);
             } finally {
                 setIsDeleting(false);
             }
@@ -47,8 +46,6 @@ const RatedReviewedBookCard = ({ book, onDeleteReview }) => {
             </span>
         ));
     };
-
-    console.log(book.volumeInfo.imageLinks);
     
     return (
         <>
