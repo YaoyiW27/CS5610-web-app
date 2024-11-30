@@ -14,7 +14,7 @@
 
 /* Navbar - Essential App-wide Navigation Styles */
 .navbar {
-  background-color: #212529; 
+  background-color: #212529;
   padding: 0.75rem 2rem;
   display: flex;
   justify-content: space-between;
@@ -24,12 +24,32 @@
   top: 0;
   width: 100%;
   z-index: 1000;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); 
-  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+.nav-link {
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  background-color: #6c757d; 
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.navbar:hover {
-  background-color: #343a40; 
+.nav-link:hover {
+  background-color: #5a6268;
+  color: #fff;
+}
+
+.nav-link.active {
+  background-color: #495057;
+  color: #fff;
+}
+
+.navbar-menu {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
 }
 
 .navbar-brand {
@@ -37,49 +57,41 @@
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
-}
-
-.navbar-brand i {
-  font-size: 1.5rem; 
   color: #f8f9fa;
 }
 
-.navbar-brand a {
+.navbar-brand a,
+.navbar-brand span {  
   font-size: 1.25rem;
   margin: 0;
   font-weight: 500;
-  color: #f8f9fa; 
+  color: #f8f9fa;  
   text-decoration: none;
-  transition: color 0.2s ease; 
+  transition: color 0.2s ease;
 }
 
-.navbar-brand a:hover {
-  color: #adb5bd; 
-}
-
-.navbar-menu {
-  display: flex;
-  gap: 1.5rem; 
-}
-
-.nav-link {
-  color: rgba(255, 255, 255, 0.85);
-  text-decoration: none;
-  font-size: 1rem;
-  padding: 0.5rem 1rem; 
-  border-radius: 4px; 
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.nav-link:hover {
+.navbar-brand a:hover,
+.navbar-brand span:hover { 
   color: #fff;
-  background-color: rgba(255, 255, 255, 0.1); 
 }
 
-.nav-link.active {
-  color: #fff;
-  border-bottom: none; 
-  background-color: rgba(255, 255, 255, 0.2); 
+@media (max-width: 480px) {
+  .navbar {
+    padding: 0.75rem 1rem;
+  }
+
+  .navbar-brand {
+    font-size: 1.25rem;
+  }
+
+  .nav-link {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.875rem;
+  }
+
+  .navbar-menu {
+    gap: 0.5rem;
+  }
 }
 
 .auth-buttons {
