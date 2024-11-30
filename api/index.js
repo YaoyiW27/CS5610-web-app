@@ -14,7 +14,7 @@ const GOOGLE_BOOKS_API_KEY = process.env.GOOGLE_BOOKS_API_KEY;
 
 app.use(cors({ 
   origin: process.env.NODE_ENV === 'production' 
-    ? 'https://your-domain.vercel.app'
+    ? 'https://cs5610-web-app.vercel.app'
     : 'http://localhost:3000',
   credentials: true 
 }));
