@@ -29,7 +29,13 @@ app.use((err, req, res, next) => {
 });
 
 const { PrismaClient } = pkg;
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL
+    },
+  },
+});
 
 // Auth middleware
 function requireAuth(req, res, next) {
