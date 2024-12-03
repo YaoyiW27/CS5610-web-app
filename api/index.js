@@ -209,7 +209,7 @@ app.get("/books/:id", async (req, res) => {
     let googleBookData;
     try {
       const googleResponse = await fetch(`https://www.googleapis.com/books/v1/volumes/${googleBooksId}?key=${GOOGLE_BOOKS_API_KEY}`);
-      console.log("Google Books API response:", googleResponse);
+      // console.log("Google Books API response:", googleResponse);
       if (!googleResponse.ok) {
         throw new Error(`Google Books API request failed with status: ${googleResponse.status}`);
       }

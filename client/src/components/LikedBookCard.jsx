@@ -26,7 +26,7 @@ const LikedBookCard = ({ book, onDeleteFavorite }) => {
 
                 onDeleteFavorite(book.id);
             } catch (error) {
-                console.error('Error deleting:', error);
+                alert('Error deleting: ' + error.message);
                 alert('Failed to remove from favorites');
             } finally {
                 setIsDeleting(false);
@@ -34,8 +34,6 @@ const LikedBookCard = ({ book, onDeleteFavorite }) => {
         }
     };
 
-    console.log(book.volumeInfo.imageLinks);
-    
     return (
         <>
             <div className="card-container" onClick={() => setIsModalOpen(true)}>
