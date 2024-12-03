@@ -54,7 +54,8 @@ const SearchBooks = () => {
             const data = await response.json();
             setBooks(data.items || []);
         } catch (err) {
-            alert('Search error: ' + err.message);
+            console.error('Search error:', err);
+            alert('Search failed. Please try again.');
         } finally {
             setIsLoading(false);
         }

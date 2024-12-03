@@ -25,6 +25,8 @@ function BookDetailPage() {
       const response = await fetch(`${API_BASE_URL}/books/${id}`, { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch book details");
       const bookData = await response.json();
+      
+      console.log('Fetched book data:', bookData);
 
       setBook(bookData);
       if (user && bookData.dbData && bookData.dbData.userFavorites) {
@@ -35,16 +37,19 @@ function BookDetailPage() {
       } else {
         setIsFavorite(false);
       }
- 
+      
       if (user && bookData.dbData) {
         const userReview = bookData.dbData.reviews.find(
           review => review.user.id === user.id
         );
-
+        
+        console.log('User review:', userReview);
+        
         // Find user's rating from userRatings array
         const userRatingObj = bookData.dbData.userRatings.find(
           rating => rating.user.id === user.id
         );
+        console.log('User rating object:', userRatingObj);
 
         if (userReview) {
           setUserHasReview(true);
@@ -53,21 +58,22 @@ function BookDetailPage() {
         }
 
         if (userRatingObj) {
-          const userScore = parseFloat(userRatingObj.score);
-          setUserRating(userScore);
-          setTempRating(userScore);
+          const rating = parseFloat(userRatingObj.score);
+          console.log('Setting user rating to:', rating);
+          setUserRating(rating);
+          setTempRating(rating);
         } else {
           setUserRating(0);
           setTempRating(0);
         }
       }
     } catch (err) {
-      alert("Sorry, we couldn't load this book's details. Please try again later.");
-      setError("Book details temporarily unavailable");
+      console.error("Error fetching book details:", err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
-}, [id, API_BASE_URL, user]);
+  }, [id, API_BASE_URL, user]);
 
   useEffect(() => {
     fetchBookDetails();
@@ -93,7 +99,8 @@ function BookDetailPage() {
       
       setIsFavorite(!isFavorite);
     } catch (err) {
-      alert("Favorite error: " + err.message);
+      console.error("Favorite error:", err);
+      alert(err.message);
     }
   };
 
@@ -153,7 +160,8 @@ function BookDetailPage() {
       // Ensure getting the latest data
       await fetchBookDetails();
     } catch (err) {
-      alert("Delete error: " + err.message);
+      console.error("Delete error:", err);
+      alert(err.message);
     }
   };
 
@@ -213,6 +221,7 @@ function BookDetailPage() {
       }, 100);
       
     } catch (err) {
+      console.error(err);
       alert(err.message);
     }
   };

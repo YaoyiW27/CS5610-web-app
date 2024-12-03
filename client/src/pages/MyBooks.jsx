@@ -58,7 +58,7 @@ function MyBooks() {
           setLoading(false);
         }
       } catch (err) {
-        alert('Error fetching data: ' + err.message);
+        console.error('Error fetching data:', err);
         if (isMounted) {
           setError(err.message);
           setLoading(false);

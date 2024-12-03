@@ -7,48 +7,32 @@ import cors from "cors";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import bcrypt from "bcrypt";
-import path from "path";
-import serverless from "serverless-http";
 
 const app = express();
-// const PORT = process.env.PORT || 3001; // remove PORT for Vercel deployment
+const PORT = process.env.PORT || 3001;
 const GOOGLE_BOOKS_API_KEY = process.env.GOOGLE_BOOKS_API_KEY;
 
-app.use(cors({ 
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://cs5610-web-app.vercel.app', 'https://cs5610-web-app-git-main-your-username.vercel.app']
-    : 'http://localhost:3000',
-  credentials: true 
-}));
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(morgan("dev"));
 app.use(cookieParser());
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: "Something went wrong!" });
-});
 
 const { PrismaClient } = pkg;
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL
-    },
-  },
-});
+const prisma = new PrismaClient();
 
 // Auth middleware
 function requireAuth(req, res, next) {
   const token = req.cookies.token;
-
+  console.log("Token:", token); 
   if (!token) {
-    return res.status(401).json({ error: "Please log in to continue" });
+    return res.status(401).json({ error: "Please login to continue" });
   }
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     req.userId = payload.userId;
+    console.log("Authenticated User ID:", req.userId); 
     next();
   } catch (err) {
     console.error("JWT Verification Error:", err);
@@ -56,9 +40,9 @@ function requireAuth(req, res, next) {
     res.clearCookie("token");
     // Check if it's a token expiration error
     if (err.name === "TokenExpiredError") {
-      return res.status(401).json({ error: "Session expired. Please log in again" });
+      return res.status(401).json({ error: "Session expired. Please login again" });
     }
-    return res.status(401).json({ error: "Invalid session. Please log in again" });
+    return res.status(401).json({ error: "Invalid session. Please login again" });
   }
 }
 
@@ -159,6 +143,7 @@ app.get("/me", requireAuth, async (req, res) => {
 app.get("/books/search/:query", async (req, res) => {
   try {
     const query = encodeURIComponent(req.params.query);
+    console.log("Searching for:", query); 
 
     const response = await fetch(
       `https://www.googleapis.com/books/v1/volumes?q=${query}&maxResults=20&key=${GOOGLE_BOOKS_API_KEY}`
@@ -303,6 +288,8 @@ app.get("/books/user/favorites", requireAuth, async (req, res) => {
         book: true 
       }
     });
+
+    console.log("Found favorites:", favorites);
 
     const booksWithDetails = await Promise.all(favorites.map(async (fav) => {
       try {
@@ -799,10 +786,8 @@ app.delete("/books/:id/review", requireAuth, async (req, res) => {
   }
 });
 
-// app.listen(PORT, () => {
-//   console.log(`Server running on http://localhost:${PORT} 🎉 🚀`);
-//   console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
-//   console.log("Google Books API Key:", GOOGLE_BOOKS_API_KEY ? "Present" : "Missing");
-// });
-
-export const handler = serverless(app);
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT} 🎉 🚀`);
+  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log("Google Books API Key:", GOOGLE_BOOKS_API_KEY ? "Present" : "Missing");
+});
