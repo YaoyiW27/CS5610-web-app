@@ -208,7 +208,8 @@ app.get("/books/:id", async (req, res) => {
 
     let googleBookData;
     try {
-      const googleResponse = await fetch(`https://www.googleapis.com/books/v1/volumes/${googleBooksId}`);
+      const googleResponse = await fetch(`https://www.googleapis.com/books/v1/volumes/${googleBooksId}?key=${GOOGLE_BOOKS_API_KEY}`);
+      // console.log("Google Books API response:", googleResponse);
       if (!googleResponse.ok) {
         throw new Error(`Google Books API request failed with status: ${googleResponse.status}`);
       }
@@ -294,7 +295,7 @@ app.get("/books/user/favorites", requireAuth, async (req, res) => {
     const booksWithDetails = await Promise.all(favorites.map(async (fav) => {
       try {
         const googleResponse = await fetch(
-          `https://www.googleapis.com/books/v1/volumes/${fav.book.googleBooksId}`
+          `https://www.googleapis.com/books/v1/volumes/${fav.book.googleBooksId}?key=${GOOGLE_BOOKS_API_KEY}`
         );
         
         const googleData = await googleResponse.json();
@@ -349,7 +350,7 @@ app.get("/books/user/reviews", requireAuth, async (req, res) => {
     const formattedReviews = await Promise.all(reviews.map(async (review) => {
       const { book } = review;
       try {
-        const googleBooksUrl = `https://www.googleapis.com/books/v1/volumes/${book.googleBooksId}`;
+        const googleBooksUrl = `https://www.googleapis.com/books/v1/volumes/${book.googleBooksId}?key=${GOOGLE_BOOKS_API_KEY}`;
         
         const googleResponse = await fetch(googleBooksUrl);
         const googleData = await googleResponse.json();
@@ -397,7 +398,7 @@ app.get("/books/user/ratings", requireAuth, async (req, res) => {
     const formattedRatings = await Promise.all(ratings.map(async (rating) => {
       const { book } = rating;
       try {
-        const googleBooksUrl = `https://www.googleapis.com/books/v1/volumes/${book.googleBooksId}`;
+        const googleBooksUrl = `https://www.googleapis.com/books/v1/volumes/${book.googleBooksId}?key=${GOOGLE_BOOKS_API_KEY}`;
         const googleResponse = await fetch(googleBooksUrl);
         const googleData = await googleResponse.json();
 
