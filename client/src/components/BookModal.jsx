@@ -21,8 +21,7 @@ const BookModal = ({ book, onClose, isOpen }) => {
 
   useEffect(() => {
     const fetchBookDetails = async () => {
-      // check if book data is available
-      if (!book?.id || !book?.volumeInfo) return;
+      if (!book?.id) return;
       
       try {
         setLoading(true);
@@ -30,30 +29,23 @@ const BookModal = ({ book, onClose, isOpen }) => {
           credentials: 'include'
         });
         
-        if (!response.ok) {
-          throw new Error('This book\'s details are not available at the moment');
-        }
-        
+        if (!response.ok) throw new Error('Failed to fetch book details');
         const data = await response.json();
-        if (data && data.volumeInfo) { 
-          setBookDetails(data);
-        }
+        console.log('Modal book details:', data);
+        setBookDetails(data);
       } catch (err) {
-        if (isOpen) {
-          alert('This book may be too old or its details are temporarily unavailable. You can try searching for a different edition.');
-        }
+        console.error('Error fetching book details:', err);
       } finally {
         setLoading(false);
       }
     };
-  
-    // 2. only fetch book details when the modal is open and book data is available
-    if (isOpen && book && book.id) {
+
+    if (isOpen && book) {
       fetchBookDetails();
     }
   }, [isOpen, book, API_BASE_URL]);
-  
-  if (!isOpen || !book?.volumeInfo) return null;
+
+  if (!isOpen || !book) return null;
   if (loading) return <div className="modal-overlay"><div className="modal-content">Loading...</div></div>;
 
   const bookId = book.id;
@@ -73,6 +65,10 @@ const BookModal = ({ book, onClose, isOpen }) => {
 
   // use DOMPurify to sanitize the description
   const sanitizedDescription = DOMPurify.sanitize(description);
+
+  console.log('Book data in modal:', book);
+  console.log('Average rating:', averageRating);
+  console.log('Ratings count:', ratingsCount);
 
   const renderStars = () => {
     const stars = [];
