@@ -1,70 +1,98 @@
-# Getting Started with Create React App
+# CS 5610 Final Project: Bookly 📚
+[Demo Video](https://www.youtube.com/watch?v=uZTijQpb6hA)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+<img src="./client/public/bookly.png">
 
-## Available Scripts
+[![forthebadge](https://forthebadge.com/images/badges/uses-html.svg)](https://forthebadge.com) &nbsp;
+[![forthebadge](https://forthebadge.com/images/badges/uses-css.svg)](https://forthebadge.com) &nbsp;
+[![forthebadge](https://forthebadge.com/images/badges/made-with-javascript.svg)](https://forthebadge.com) &nbsp;
+[![forthebadge](https://forthebadge.com/images/badges/made-with-react.svg)](https://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](https://forthebadge.com) &nbsp;
 
-In the project directory, you can run:
+### Team Members:
+- [Weiwei Zhang](https://github.com/weiwz01)
+- [Yaoyi Wang](https://github.com/YaoyiW27)
 
-### `npm start`
+## Project Description
+This is an online book community platform where users can browse, search, and bookmark various books while engaging in discussions through comments. The website offers a rich categorization of books including Literature & Fiction, Sci-Fi & Fantasy, Art & Design, Science & Technology, History & Biography, and more, making it easy for users to discover books of their interest.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Features
+- User authentication (register/login)
+- Book browsing and searching
+- Bookmarking favorite books
+- Rating books
+- Commenting and reviewing books
+- Book categorization (Literature & Fiction, Sci-Fi & Fantasy, etc.)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Tech Stack
+![react](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
+![Express.js](https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB)
+![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
+![JWT](https://img.shields.io/badge/JWT-black?style=plastic&logo=JSON%20web%20tokens)
+![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white)
+![CSS3](https://img.shields.io/badge/css3-%231572B6.svg?style=for-the-badge&logo=css3&logoColor=white)
+![Visual Studio Code](https://img.shields.io/badge/Visual%20Studio%20Code-0078d7.svg?style=for-the-badge&logo=visual-studio-code&logoColor=white)
+![vercel](https://img.shields.io/badge/Vercel-20232A?style=for-the-badge&logo=vercel&logoColor=61DAFB)
 
-### `npm test`
+## Features
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+**📖 Multi-Page Layout**
 
-### `npm run build`
+**🎨 Styled with React-Bootstrap**
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+**📱 Fully Responsive**
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Getting Started
+Clone the repository. You will need `node.js` (v18 or above) and `git` installed globally on your machine.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Installation and Setup
+1. Installation and backend setup:
+```bash
+cd api
+npm install
+```
+2. Configure your database:
+- Copy .env.example to .env
+- Update DATABASE_URL in .env with your MySQL credentials
+```bash
+DATABASE_URL="mysql://username:password@localhost:3306/bookly_db"
+```
+3. Frontend setup:
+```bash
+cd client
+npm install
+```
+4. Start the application:
+- For backend (in api directory):
+```bash
+npx nodemon index.js
+```
+- For frontend (in client directory):
+```bash
+npm start
+```
+5. (Optional) Open Prisma Studio to manage database:
+```bash
+cd api
+npx prisma db push
+npx prisma studio
+```
 
-### `npm run eject`
+## Environment Variables
+### Backend (.env)
+```bash
+PORT=3001
+DATABASE_URL="mysql://username:password@localhost:3306/bookly_db"
+JWT_SECRET=your_jwt_secret
+GOOGLE_BOOKS_API_KEY=your_google_books_api_key
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Frontend (.env)
+```bash
+REACT_APP_API_BASE_URL=http://localhost:3001
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
